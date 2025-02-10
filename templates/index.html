@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Football Predictions</title>
+</head>
+<body>
+    <h1>Football Predictions - Last Week's Comparison</h1>
+    
+    <h2>Compare Predictions vs Actual Results:</h2>
+    {% for league in leagues %}
+        <button onclick="window.location.href='/league/{{ league }}'">Compare {{ league }}</button>
+    {% endfor %}
+
+    <h2>View Latest Predictions:</h2>
+    {% for league in leagues %}
+        <button onclick="window.location.href='/predictions/{{ league }}'">Predictions {{ league }}</button>
+    {% endfor %}
+</body>
+</html>
