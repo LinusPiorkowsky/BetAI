@@ -21,6 +21,8 @@ training_files = [
     os.path.join(DATA_DIR, "2023_24", f"{league}.csv"),
     os.path.join(DATA_DIR, "2022_23", f"{league}.csv"),
     os.path.join(DATA_DIR, "2021_22", f"{league}.csv"),
+    os.path.join(DATA_DIR, "2020_21", f"{league}.csv"),
+    os.path.join(DATA_DIR, "2019_20", f"{league}.csv"),
 ]
 df_list = []
 for f in training_files:
@@ -253,9 +255,9 @@ for i, row in df_fix.iterrows():
     label_str = reverse_ftr[pred_label]
 
     # Override rules (unchanged)
-    if pred_label == 0 and (ph <= 0.45):
+    if pred_label == 0 and (ph <= 0.43):
         label_str = "D"
-    if pred_label == 2 and (pa <= 0.4):
+    elif pred_label == 2 and (pa <= 0.4):
         label_str = "D"
 
     home_id = row["HomeTeam"]
