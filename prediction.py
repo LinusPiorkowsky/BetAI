@@ -13,7 +13,7 @@ from sklearn.preprocessing import LabelEncoder, StandardScaler
 ###############################################################################
 # 1) CHOOSE LEAGUE + LOAD MULTIPLE CSVs
 ###############################################################################
-league = "SP1"
+league = "D1"
 DATA_DIR = "data"
 
 training_files = [
@@ -240,8 +240,10 @@ preds = model.predict(X_fix_scaled)
 
 reverse_ftr = {0:"H",1:"D",2:"A"}
 
-if "Time" not in df_fix.columns:
-    df_fix["Time"] = "Unknown"
+# Ensure required columns exist in fixtures DataFrame
+for col in ["Time", "AvgH", "AvgD", "AvgA"]:
+    if col not in df_fix.columns:
+        df_fix[col] = 0.0  # Default value if missing
 
 # Build a list of dicts
 predictions_list = []
@@ -250,11 +252,9 @@ for i, row in df_fix.iterrows():
     pred_label = preds[i]
     label_str = reverse_ftr[pred_label]
 
-        # Override #1: If originally "H", but (ph - pd <= 0.06), then change label to "D"
+    # Override rules (unchanged)
     if pred_label == 0 and (ph <= 0.45):
         label_str = "D"
-
-    # Override #2: If originally "A", but (pa - pd <= 0.025), then change label to "D"
     if pred_label == 2 and (pa <= 0.4):
         label_str = "D"
 
@@ -270,6 +270,20 @@ for i, row in df_fix.iterrows():
     
     match_time = str(row["Time"]).strip() if str(row["Time"]).lower() != "nan" else "Unknown"
 
+    # Extract only the odds for the predicted outcome
+    def safe_float(value):
+        """Convert value to float if possible, otherwise return 0.0"""
+        try:
+            return round(float(value), 2)
+        except (ValueError, TypeError):
+            return 0.0
+
+    if label_str == "H":
+        predicted_odds = safe_float(row["AvgH"])
+    elif label_str == "D":
+        predicted_odds = safe_float(row["AvgD"])
+    else:  # Away win (A)
+        predicted_odds = safe_float(row["AvgA"])
 
     predictions_list.append({
         "Date": date_str,
@@ -277,6 +291,7 @@ for i, row in df_fix.iterrows():
         "HomeTeam": home_str,
         "AwayTeam": away_str,
         "Prediction": label_str,
+        "Predicted_Odds": predicted_odds,
         "Prob_H": round(ph,3),
         "Prob_D": round(pd,3),
         "Prob_A": round(pa,3),
