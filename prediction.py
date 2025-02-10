@@ -13,7 +13,7 @@ from sklearn.preprocessing import LabelEncoder, StandardScaler
 ###############################################################################
 # 1) CHOOSE LEAGUE + LOAD MULTIPLE CSVs
 ###############################################################################
-league = "F1"
+league = "SP1"
 DATA_DIR = "data"
 
 training_files = [
@@ -240,6 +240,9 @@ preds = model.predict(X_fix_scaled)
 
 reverse_ftr = {0:"H",1:"D",2:"A"}
 
+if "Time" not in df_fix.columns:
+    df_fix["Time"] = "Unknown"
+
 # Build a list of dicts
 predictions_list = []
 for i, row in df_fix.iterrows():
@@ -264,9 +267,13 @@ for i, row in df_fix.iterrows():
     date_str = raw_date.strftime("%Y-%m-%d") if hasattr(raw_date, "strftime") else "Unknown"
     if "nat" in date_str.lower() or "nan" in date_str.lower():
         date_str = "Unknown"
+    
+    match_time = str(row["Time"]).strip() if str(row["Time"]).lower() != "nan" else "Unknown"
+
 
     predictions_list.append({
         "Date": date_str,
+        "Time": match_time,
         "HomeTeam": home_str,
         "AwayTeam": away_str,
         "Prediction": label_str,
@@ -298,29 +305,62 @@ save_dir = os.path.join("data", "prediction_history")
 if not os.path.exists(save_dir):
     os.makedirs(save_dir)
 
+def hash_dataframe(df):
+    """Convert DataFrame to CSV string (without index) and compute MD5 hash."""
+    try:
+        csv_string = df.to_csv(index=False)
+        return hashlib.md5(csv_string.encode('utf-8')).hexdigest()
+    except Exception as e:
+        print(f"Error hashing DataFrame: {e}")
+        return None
+
+# Ensure the save directory exists
+if not os.path.exists(save_dir):
+    os.makedirs(save_dir)
+
 save_path = os.path.join(save_dir, base_filename)
 
-# Check if a file for today already exists.
+# Check if a file for today already exists
 if os.path.exists(save_path):
-    # Load the existing predictions file.
-    df_existing = pd.read_csv(save_path)
-    # Compute hashes for the existing file and the new predictions.
-    existing_hash = hash_dataframe(df_existing)
-    new_hash = hash_dataframe(df_preds)
-    if new_hash == existing_hash:
-        print("Vorhersagen haben sich seit dem letzten Speichern nicht geändert. Kein Duplikat wird gespeichert.")
-    else:
-        # If the predictions differ, add an incremental suffix.
-        counter = 1
-        new_filename = f"predictions_{league}_{today_str}_{counter}.csv"
-        new_save_path = os.path.join(save_dir, new_filename)
-        while os.path.exists(new_save_path):
-            counter += 1
-            new_filename = f"predictions_{league}_{today_str}_{counter}.csv"
-            new_save_path = os.path.join(save_dir, new_filename)
-        df_preds.to_csv(new_save_path, index=False)
-        print(f"Neue Vorhersagen wurden gespeichert als: {new_save_path}")
+    print("Existing prediction file found. Checking for changes...")
+
+    try:
+        # Load the existing predictions file
+        df_existing = pd.read_csv(save_path)
+
+        # Ensure DataFrame is not empty
+        if df_existing.empty:
+            print("WARNING: Existing prediction file is empty. Overwriting with new predictions.")
+            df_preds.to_csv(save_path, index=False)
+            print(f"New predictions saved as: {save_path}")
+        else:
+            # Compute hashes for existing and new predictions
+            existing_hash = hash_dataframe(df_existing)
+            new_hash = hash_dataframe(df_preds)
+
+            if existing_hash is None or new_hash is None:
+                print("ERROR: Failed to compute hashes. Saving new file to avoid loss.")
+                df_preds.to_csv(save_path, index=False)
+            elif new_hash == existing_hash:
+                print("Predictions have not changed since last save. No duplicate will be stored.")
+            else:
+                # If predictions differ, add an incremental suffix
+                counter = 1
+                while True:
+                    new_filename = f"predictions_{league}_{today_str}_{counter}.csv"
+                    new_save_path = os.path.join(save_dir, new_filename)
+                    
+                    if not os.path.exists(new_save_path):
+                        break
+                    counter += 1
+
+                df_preds.to_csv(new_save_path, index=False)
+                print(f"New predictions saved as: {new_save_path}")
+
+    except Exception as e:
+        print(f"ERROR reading existing file: {e}. Saving new predictions to {save_path}.")
+        df_preds.to_csv(save_path, index=False)
 else:
-    # If no file exists for today, save the new predictions.
+    # If no file exists for today, save the new predictions
     df_preds.to_csv(save_path, index=False)
-    print(f"Vorhersagen wurden gespeichert als: {save_path}")
+    print(f"Predictions saved as: {save_path}")
