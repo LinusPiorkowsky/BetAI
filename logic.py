@@ -5,14 +5,15 @@ import pandas as pd
 from datetime import datetime, timedelta
 
 # Basisverzeichnis für gespeicherte Dateien
-SAVE_DIR = "data"
+SAVE_DIR = "data/2024_25"
+FIXTURES_DIR = "data/fixtures"
 os.makedirs(SAVE_DIR, exist_ok=True)
+os.makedirs(FIXTURES_DIR, exist_ok=True)
 
 def download_dataset(url, filename):
     """Lädt einen ZIP-Datensatz herunter, entpackt ihn, verarbeitet die Daten und ersetzt die alte Datei."""
     filepath = os.path.join(SAVE_DIR, filename)
     temp_filename = filepath + ".tmp.zip"
-    prepared_filepath = os.path.join(SAVE_DIR, "dataset_prepared.csv")
 
     try:
         response = requests.get(url, timeout=10)
@@ -37,20 +38,16 @@ def download_dataset(url, filename):
         
         os.remove(temp_filename)  # Entfernt die temporäre ZIP-Datei
         
-        # Annahme: Die entpackte Datei ist eine CSV-Datei
-        csv_filename = [f for f in os.listdir(SAVE_DIR) if f.endswith(".csv")][0]
-        csv_filepath = os.path.join(SAVE_DIR, csv_filename)
-    
+        print(f"✅ Datensatz erfolgreich heruntergeladen und entpackt: {SAVE_DIR}")
 
     except requests.RequestException as e:
-        print(f"Fehler beim Herunterladen des Datensatzes: {e}")
+        print(f"❌ Fehler beim Herunterladen des Datensatzes: {e}")
     except zipfile.BadZipFile:
-        print("Fehler: Die heruntergeladene Datei ist keine gültige ZIP-Datei.")
+        print("❌ Fehler: Die heruntergeladene Datei ist keine gültige ZIP-Datei.")
 
 def download_fixtures(url, filename):
-    """Lädt die Spielansetzungen als CSV herunter, verarbeitet sie und speichert nur relevante Spalten."""
-    temp_filename = os.path.join(SAVE_DIR, filename + ".tmp")
-    prepared_filepath = os.path.join(SAVE_DIR, "fixtures_prepared.csv")
+    """Lädt die Spielansetzungen als CSV herunter und speichert sie direkt in 'data/fixtures.csv'."""
+    filepath = os.path.join(FIXTURES_DIR, filename)
 
     try:
         response = requests.get(url, timeout=10)
@@ -58,38 +55,18 @@ def download_fixtures(url, filename):
         
         # Prüfen, ob die Datei nicht leer ist
         if not response.content:
-            print("Fehler: Die heruntergeladene Datei ist leer.")
+            print("❌ Fehler: Die heruntergeladene Datei ist leer.")
             return
 
-        # Temporär speichern
-        with open(temp_filename, 'wb') as file:
+        # Speichern ohne Modifikationen
+        with open(filepath, 'wb') as file:
             file.write(response.content)
         
-        # Daten vorbereiten
-        prepare_fixtures(temp_filename, prepared_filepath)
-        os.remove(temp_filename)  # Entfernt die temporäre Datei nach Verarbeitung
+        print(f"✅ Fixtures erfolgreich heruntergeladen und gespeichert: {filepath}")
 
     except requests.RequestException as e:
-        print(f"Fehler beim Herunterladen der Spielansetzungen: {e}")
+        print(f"❌ Fehler beim Herunterladen der Spielansetzungen: {e}")
 
-def prepare_fixtures(input_filepath, output_filepath):
-    """Bereitet die heruntergeladene CSV-Datei auf und speichert nur relevante Spalten."""
-    try:
-        df = pd.read_csv(input_filepath)
-        
-        # Relevante Spalten auswählen
-        columns_needed = ["Div", "Date", "Time", "HomeTeam", "AwayTeam", "AvgH", "AvgD", "AvgA", "Avg>2.5", "Avg<2.5"]
-        df = df[columns_needed]
-        
-        # Zeit um +1 Stunde anpassen
-        df["Time"] = df["Time"].apply(lambda x: (datetime.strptime(x, "%H:%M") + timedelta(hours=1)).strftime("%H:%M"))
-        
-        # Gesäuberte Datei speichern
-        df.to_csv(output_filepath, index=False)
-        print(f"Fixtures erfolgreich vorbereitet und gespeichert: {output_filepath}")
-
-    except Exception as e:
-        print(f"Fehler bei der Datenaufbereitung: {e}")
-
+# Aufruf der Funktionen
 download_dataset('https://www.football-data.co.uk/mmz4281/2425/data.zip', 'dataset.csv')
 download_fixtures('https://www.football-data.co.uk/fixtures.csv', 'fixtures.csv')
