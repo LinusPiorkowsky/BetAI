@@ -4,11 +4,18 @@ from flask import Flask, render_template
 
 app = Flask(__name__)
 
-# Verzeichnis der Predictions
 PREDICTION_DIR = "data/predictions"
 
+LEAGUE_NAMES = {
+    "E0": "Premier League",
+    "D1": "Bundesliga",
+    "F1": "Ligue 1",
+    "I1": "Serie A",
+    "SP1": "La Liga"
+}
+
 def get_latest_prediction():
-    """Findet die neueste Prediction-Datei und lädt sie als DataFrame."""
+    """Find the latest prediction file and load it."""
     prediction_files = sorted(
         [f for f in os.listdir(PREDICTION_DIR) if f.startswith("prediction") and f.endswith(".csv")],
         key=lambda x: int(x.replace("prediction", "").replace(".csv", ""))
@@ -23,16 +30,17 @@ def get_latest_prediction():
 
 @app.route("/")
 def index():
-    """Zeigt die neueste Prediction."""
+    """Display the latest prediction."""
     df = get_latest_prediction()
     if df is None or df.empty:
-        return render_template("index.html", predictions=None)
+        return render_template("index.html", predictions=None, leagues=[], leagues_dict=LEAGUE_NAMES)
 
-    # Sortiere nach Wahrscheinlichkeit eines Sieges (egal welches)
     df["Max_Prob"] = df[["Prob_HomeWin", "Prob_Draw", "Prob_AwayWin"]].max(axis=1)
     df = df.sort_values(by="Max_Prob", ascending=False)
 
-    return render_template("index.html", predictions=df.to_dict(orient="records"))
+    leagues = df["Div"].unique().tolist()
+
+    return render_template("index.html", predictions=df.to_dict(orient="records"), leagues=leagues, leagues_dict=LEAGUE_NAMES)
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)

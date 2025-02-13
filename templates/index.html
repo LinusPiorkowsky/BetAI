@@ -18,6 +18,19 @@
             font-weight: 600;
             margin-bottom: 15px;
         }
+        .navbar {
+            background: #1e1e1e;
+            padding: 12px;
+            display: flex;
+            justify-content: space-around;
+            border-bottom: 2px solid #333;
+        }
+        .navbar a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 600;
+        }
         .container {
             max-width: 420px;
             margin: 0 auto;
@@ -47,7 +60,7 @@
         }
         .prob {
             font-size: 16px;
-            padding: 10px 18px; /* Bigger probability boxes */
+            padding: 12px 20px;
             border-radius: 12px;
             font-weight: 600;
             color: #fff;
@@ -59,20 +72,57 @@
             font-size: 15px;
             color: #bdbdbd;
         }
-        .time {
-            font-size: 15px;
-            color: #aaa;
-            margin-bottom: 8px;
+        .filters {
+            margin-bottom: 15px;
+        }
+        select {
+            background: #1e1e1e;
+            color: #fff;
+            padding: 8px;
+            border: none;
+            border-radius: 6px;
         }
     </style>
+    <script>
+        function filterMatches() {
+            var league = document.getElementById("leagueFilter").value;
+            var matches = document.getElementsByClassName("match-card");
+
+            for (var i = 0; i < matches.length; i++) {
+                var match = matches[i];
+                var matchLeague = match.getAttribute("data-league");
+
+                if (league === "all" || matchLeague === league) {
+                    match.style.display = "block";
+                } else {
+                    match.style.display = "none";
+                }
+            }
+        }
+    </script>
 </head>
 <body>
+    <div class="navbar">
+        <a href="/">Predictions</a>
+        <a href="/results">Results</a>
+        <a href="/logic">Logic</a>
+    </div>
+
     {% if predictions %}
-        <h1>⚽ Prediction for {{ predictions[0].Date }}</h1>
+        <h1>⚽ Predictions for {{ predictions[0].Date }}</h1>
+
+        <div class="filters">
+            <select id="leagueFilter" onchange="filterMatches()">
+                <option value="all">All Leagues</option>
+                {% for league in leagues %}
+                <option value="{{ league }}">{{ leagues_dict[league] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
         <div class="container">
             {% for match in predictions %}
-            <div class="match-card">
-                <div class="time">🕒 {{ match.Time }}</div>
+            <div class="match-card" data-league="{{ match.Div }}">
                 <div class="match-teams">{{ match.HomeTeam.capitalize() }} vs {{ match.AwayTeam.capitalize() }}</div>
 
                 <div class="prediction">
