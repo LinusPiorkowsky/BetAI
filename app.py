@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+from datetime import datetime, timedelta
 from flask import Flask, render_template
 
 app = Flask(__name__)
@@ -26,21 +27,35 @@ def get_latest_prediction():
 
     latest_file = os.path.join(PREDICTION_DIR, prediction_files[-1])
     df = pd.read_csv(latest_file)
+
+    # Convert Date & Time for filtering and sorting
+    df["Date"] = pd.to_datetime(df["Date"], format="%d/%m/%Y")
+    df["MatchDateTime"] = df["Date"].astype(str) + " " + df["Time"]
+    df["MatchDateTime"] = pd.to_datetime(df["MatchDateTime"], errors="coerce")
+
+    # Remove matches that passed 2.5 hours ago
+    now = datetime.now()
+    #df = df[df["MatchDateTime"] + timedelta(hours=2.5) > now]
+
     return df
 
 @app.route("/")
 def index():
-    """Display the latest prediction."""
     df = get_latest_prediction()
     if df is None or df.empty:
-        return render_template("index.html", predictions=None, leagues=[], leagues_dict=LEAGUE_NAMES)
+        return render_template("index.html", predictions=None, date_range="", leagues=[], leagues_dict=LEAGUE_NAMES)
 
-    df["Max_Prob"] = df[["Prob_HomeWin", "Prob_Draw", "Prob_AwayWin"]].max(axis=1)
-    df = df.sort_values(by="Max_Prob", ascending=False)
+    # Sort matches by date and time
+    df = df.sort_values(by=["Date", "Time"])
+
+    # Format the date range for the header
+    first_date = df["Date"].min().strftime("%d/%m/%Y")
+    last_date = df["Date"].max().strftime("%d/%m/%Y")
+    date_range = f"{first_date} - {last_date}" if first_date != last_date else first_date
 
     leagues = df["Div"].unique().tolist()
 
-    return render_template("index.html", predictions=df.to_dict(orient="records"), leagues=leagues, leagues_dict=LEAGUE_NAMES)
+    return render_template("index.html", predictions=df.to_dict(orient="records"), date_range=date_range, leagues=leagues, leagues_dict=LEAGUE_NAMES)
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)

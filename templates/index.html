@@ -109,7 +109,7 @@
     </div>
 
     {% if predictions %}
-        <h1>⚽ Predictions for {{ predictions[0].Date }}</h1>
+        <h1>⚽ Predictions for {{ date_range }}</h1>
 
         <div class="filters">
             <select id="leagueFilter" onchange="filterMatches()">
@@ -123,6 +123,7 @@
         <div class="container">
             {% for match in predictions %}
             <div class="match-card" data-league="{{ match.Div }}">
+                <div class="time">🕒 {{ match.Time }}</div>
                 <div class="match-teams">{{ match.HomeTeam.capitalize() }} vs {{ match.AwayTeam.capitalize() }}</div>
 
                 <div class="prediction">
