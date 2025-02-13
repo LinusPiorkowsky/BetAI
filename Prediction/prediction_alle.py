@@ -146,7 +146,7 @@ df_fixtures["HomeTeam"] = team_encoder.inverse_transform(df_fixtures["HomeTeamEn
 df_fixtures["AwayTeam"] = team_encoder.inverse_transform(df_fixtures["AwayTeamEncoded"])
 
 # Select only required columns
-df_fixtures = df_fixtures[["Div", "Date", "HomeTeam", "AwayTeam", "Prediction", "Prob_HomeWin", "Prob_Draw", "Prob_AwayWin", "AvgH", "AvgD", "AvgA"]]
+df_fixtures = df_fixtures[["Div", "Date", "Time", "HomeTeam", "AwayTeam", "Prediction", "Prob_HomeWin", "Prob_Draw", "Prob_AwayWin", "AvgH", "AvgD", "AvgA"]]
 
 # Save predictions
 prediction_number = len(os.listdir(PREDICTION_DIR)) + 1
