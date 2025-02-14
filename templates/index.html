@@ -128,30 +128,29 @@
 
                 <div class="prediction">
                     Prediction: <strong>
-                        {% if match.Prediction == "H" %}
-                            {{ match.HomeTeam.split(' ') | map('capitalize') | join(' ') }} ({{ match.AvgH }})
-                        {% elif match.Prediction == "D" %}
-                            Draw ({{ match.AvgD }})
+                        {% if match.Predicted_Result == 0 %}
+                            {{ match.HomeTeam.split(' ') | map('capitalize') | join(' ') }} ({{ match.B365H }})
+                        {% elif match.Predicted_Result == 1 %}
+                            Draw ({{ match.B365D }})
                         {% else %}
-                            {{ match.AwayTeam.split(' ') | map('capitalize') | join(' ') }} ({{ match.AvgA }})
+                            {{ match.AwayTeam.split(' ') | map('capitalize') | join(' ') }} ({{ match.B365A }})
                         {% endif %}
                     </strong>
                 </div>
 
-                {% set max_prob = [match.Prob_HomeWin, match.Prob_Draw, match.Prob_AwayWin]|max %}
                 <div class="probabilities">
-                    <div class="prob" style="background-color: {% if match.Prob_HomeWin >= 0.50 %}#4caf50{% elif match.Prob_HomeWin >= 0.35 %}#ffc107{% else %}#f44336{% endif %};">
-                          {{ match.HomeTeam.split(' ') | map('capitalize') | join(' ') }} {{ "%.1f"|format(match.Prob_HomeWin * 100) }}%
+                    <div class="prob" style="background-color: {% if match.Prob_H >= 0.50 %}#4caf50{% elif match.Prob_H >= 0.35 %}#ffc107{% else %}#f44336{% endif %};">
+                          {{ match.HomeTeam.split(' ') | map('capitalize') | join(' ') }} {{ "%.1f"|format(match.Prob_H * 100) }}%
                     </div>
-                    <div class="prob" style="background-color: {% if match.Prob_Draw >= 0.50 %}#4caf50{% elif match.Prob_Draw >= 0.35 %}#ffc107{% else %}#f44336{% endif %};">
-                          Draw {{ "%.1f"|format(match.Prob_Draw * 100) }}%
+                    <div class="prob" style="background-color: {% if match.Prob_D >= 0.50 %}#4caf50{% elif match.Prob_D >= 0.35 %}#ffc107{% else %}#f44336{% endif %};">
+                          Draw {{ "%.1f"|format(match.Prob_D * 100) }}%
                     </div>
-                    <div class="prob" style="background-color: {% if match.Prob_AwayWin >= 0.50 %}#4caf50{% elif match.Prob_AwayWin >= 0.35 %}#ffc107{% else %}#f44336{% endif %};">
-                          {{ match.AwayTeam.split(' ') | map('capitalize') | join(' ') }} {{ "%.1f"|format(match.Prob_AwayWin * 100) }}%
+                    <div class="prob" style="background-color: {% if match.Prob_A >= 0.50 %}#4caf50{% elif match.Prob_A >= 0.35 %}#ffc107{% else %}#f44336{% endif %};">
+                          {{ match.AwayTeam.split(' ') | map('capitalize') | join(' ') }} {{ "%.1f"|format(match.Prob_A * 100) }}%
                     </div>
                 </div>
 
-                <div class="odds">Odds: H {{ match.AvgH }}, D {{ match.AvgD }}, A {{ match.AvgA }}</div>
+                <div class="odds">Odds: H {{ match.B365H }}, D {{ match.B365D }}, A {{ match.B365A }}</div>
             </div>
             {% endfor %}
         </div>

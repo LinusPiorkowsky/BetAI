@@ -19,17 +19,18 @@ def get_latest_prediction():
     """Find the latest prediction file and load it."""
     prediction_files = sorted(
         [f for f in os.listdir(PREDICTION_DIR) if f.startswith("prediction") and f.endswith(".csv")],
-        key=lambda x: int(x.replace("prediction", "").replace(".csv", ""))
+        key=lambda x: int(''.join(filter(str.isdigit, x.replace("prediction", "")))) if any(char.isdigit() for char in x) else 0,
+        reverse=True  # Sort in descending order, so we get the latest one
     )
 
     if not prediction_files:
         return None
 
-    latest_file = os.path.join(PREDICTION_DIR, prediction_files[-1])
+    latest_file = os.path.join(PREDICTION_DIR, prediction_files[0])  # Get the most recent file
     df = pd.read_csv(latest_file)
 
     # Convert Date & Time for filtering and sorting
-    df["Date"] = pd.to_datetime(df["Date"], format="%d/%m/%Y")
+    df["Date"] = pd.to_datetime(df["Date"], format="%Y-%m-%d")
     df["MatchDateTime"] = df["Date"].astype(str) + " " + df["Time"]
     df["MatchDateTime"] = pd.to_datetime(df["MatchDateTime"], errors="coerce")
 
