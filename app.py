@@ -35,7 +35,7 @@ def get_latest_prediction():
 
     # Remove matches that passed 2.5 hours ago
     now = datetime.now()
-    #df = df[df["MatchDateTime"] + timedelta(hours=2.5) > now]
+    df = df[df["MatchDateTime"] + timedelta(hours=2.5) > now]
 
     return df
 
