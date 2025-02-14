@@ -145,14 +145,14 @@ best_rf_model = grid_search.best_estimator_
 # Model Evaluation
 y_pred = best_rf_model.predict(X_test_scaled)
 print(f"Model Accuracy: {accuracy_score(y_test, y_pred)}")
-print(classification_report(y_test, y_pred))
-print("Confusion Matrix:")
-print(confusion_matrix(y_test, y_pred))
+#print(classification_report(y_test, y_pred))
+#print("Confusion Matrix:")
+#print(confusion_matrix(y_test, y_pred))
 
 # Cross-validation scores
 cv_scores = cross_val_score(best_rf_model, X_train_scaled, y_train, cv=5)
-print(f"Cross-validation Scores: {cv_scores}")
-print(f"Mean CV Score: {cv_scores.mean()}")
+#print(f"Cross-validation Scores: {cv_scores}")
+#print(f"Mean CV Score: {cv_scores.mean()}")
 
 # Get predictions and probabilities for fixtures
 fixtures_scaled = scaler.transform(fixtures[feature_columns])
