@@ -78,7 +78,7 @@ def download_fixtures(url, filename):
         allowed_leagues = ["D1", "E0", "F1", "I1", "SP1"]
         df_fixtures = df_fixtures[df_fixtures["Div"].isin(allowed_leagues)]
         # 🎯 Nur die gewünschten Spalten behalten
-        columns_to_keep = ["Div", "Date", "Time", "HomeTeam", "AwayTeam"]
+        columns_to_keep = ["Div", "Date", "Time", "HomeTeam", "AwayTeam", "B365H", "B365D", "B365A", "B365>2.5", "B365<2.5"]
         df_fixtures = df_fixtures[columns_to_keep]
 
         # Speichern
