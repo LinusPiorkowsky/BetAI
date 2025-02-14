@@ -31,6 +31,10 @@ columns_to_keep = [
 historical_data = historical_data[columns_to_keep].dropna().reset_index(drop=True)
 historical_data.sort_values("Date", inplace=True)
 
+# Encoding 'FTR' as numerical values
+label_mapping = {'H': 0, 'D': 1, 'A': 2}
+historical_data['FTR_encoded'] = historical_data['FTR'].map(label_mapping)
+
 # Prepare fixtures
 fixtures['Date'] = pd.to_datetime(fixtures['Date'], dayfirst=True)
 fixtures['DateTime'] = pd.to_datetime(fixtures['Date'].astype(str) + ' ' + fixtures['Time'])
@@ -106,7 +110,7 @@ fixtures = compute_features(fixtures, historical_data)
 # Prepare Features and Target
 feature_columns = ['home_goals_scored', 'home_goals_conceded', 'away_goals_scored', 'away_goals_conceded', 'goal_difference', 'home_form', 'away_form']
 X = historical_data[feature_columns]
-y = historical_data['FTR']
+y = historical_data['FTR_encoded']
 
 # Train/Test Split
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
@@ -116,7 +120,7 @@ scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
-# Hyperparameter Tuning with GridSearchCV
+# Modified GridSearchCV with class weights
 param_grid = {
     'n_estimators': [100, 200, 300],
     'max_depth': [None, 10, 20, 30],
@@ -124,7 +128,17 @@ param_grid = {
     'min_samples_leaf': [1, 2, 4]
 }
 
-grid_search = GridSearchCV(RandomForestClassifier(random_state=42), param_grid, cv=5, verbose=1, n_jobs=-1)
+# Create class weights dictionary
+# Assuming 'H' = 0, 'D' = 1, 'A' = 2 in the encoded labels
+class_weights = {0: 1.0, 1: 1.2, 2: 1.0}
+
+grid_search = GridSearchCV(
+    RandomForestClassifier(random_state=42, class_weight=class_weights),
+    param_grid,
+    cv=5,
+    verbose=1,
+    n_jobs=-1
+)
 grid_search.fit(X_train_scaled, y_train)
 best_rf_model = grid_search.best_estimator_
 
@@ -140,6 +154,32 @@ cv_scores = cross_val_score(best_rf_model, X_train_scaled, y_train, cv=5)
 print(f"Cross-validation Scores: {cv_scores}")
 print(f"Mean CV Score: {cv_scores.mean()}")
 
-# Apply model to fixtures and print predictions
-fixtures['Predicted Result'] = best_rf_model.predict(scaler.transform(fixtures[feature_columns]))
-print(fixtures[['Div', 'Date', 'HomeTeam', 'AwayTeam', 'Predicted Result']])
+# Get predictions and probabilities for fixtures
+fixtures_scaled = scaler.transform(fixtures[feature_columns])
+fixtures['Predicted Result'] = best_rf_model.predict(fixtures_scaled)
+
+# Get probability scores for each outcome
+probabilities = best_rf_model.predict_proba(fixtures_scaled)
+fixtures['Prob_H'] = probabilities[:, 0]  # Home win probability
+fixtures['Prob_D'] = probabilities[:, 1]  # Draw probability
+fixtures['Prob_A'] = probabilities[:, 2]  # Away win probability
+
+# Prepare the final dataframe for export
+predictions_df = fixtures[['Div', 'Date', 'Time', 'HomeTeam', 'AwayTeam', 
+                         'Predicted Result', 'B365H', 'B365D', 'B365A',
+                         'Prob_H', 'Prob_D', 'Prob_A']]
+
+# Create the data/predictions directory if it doesn't exist
+import os
+
+# Create the data/predictions directory if it doesn't exist
+os.makedirs('data/predictions', exist_ok=True)
+
+# Find the next available filename
+i = 1
+while os.path.exists(f'data/predictions/predictions_{i}.csv'):
+    i += 1
+
+# Export to CSV with the new filename
+predictions_df.to_csv(f'data/predictions/predictions_{i}.csv', index=False)
+print(f"Predictions exported to data/predictions/predictions_{i}.csv")
