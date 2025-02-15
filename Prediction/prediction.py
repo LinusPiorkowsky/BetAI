@@ -1,13 +1,14 @@
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-from sklearn.preprocessing import StandardScaler
 import numpy as np
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split, GridSearchCV, StratifiedKFold
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+from sklearn.preprocessing import StandardScaler
 from collections import defaultdict
+import os
 
 # Define seasons and leagues
-seasons = ['2017_18', '2018_19', '2019_20', '2020_21', '2021_22', '2022_23', '2023_24', '2024_25']
+seasons = ['2019_20', '2020_21', '2021_22', '2022_23', '2023_24', '2024_25']
 leagues = ['D1', 'F1', 'E0', 'I1', 'SP1']
 
 # Load historical data
@@ -87,20 +88,44 @@ def add_recent_form(df, n_games=5):
 
 historical_data = add_recent_form(historical_data)
 
+# Head-to-Head Performance
+def head_to_head(df, home_team, away_team, date, n_games=3):
+    past_matches = df[((df['HomeTeam'] == home_team) & (df['AwayTeam'] == away_team)) |
+                      ((df['HomeTeam'] == away_team) & (df['AwayTeam'] == home_team)) &
+                      (df['Date'] < date)]
+    recent_matches = past_matches.tail(n_games)
+    home_wins = (recent_matches['HomeTeam'] == home_team) & (recent_matches['FTR'] == 'H')
+    away_wins = (recent_matches['AwayTeam'] == home_team) & (recent_matches['FTR'] == 'A')
+    draws = recent_matches['FTR'] == 'D'
+    return home_wins.sum(), away_wins.sum(), draws.sum()
+
+# Add head-to-head results as features
+historical_data['head_to_head_home_win'], historical_data['head_to_head_away_win'], historical_data['head_to_head_draw'] = zip(*historical_data.apply(
+    lambda row: head_to_head(historical_data, row['HomeTeam'], row['AwayTeam'], row['Date']), axis=1))
+
 # Feature Engineering (Compute Stats)
 def compute_features(df, reference_df):
-    features = ['home_goals_scored', 'home_goals_conceded', 'away_goals_scored', 'away_goals_conceded', 'goal_difference', 'home_form', 'away_form']
+    features = ['home_goals_scored', 'home_goals_conceded', 'away_goals_scored', 'away_goals_conceded', 'goal_difference', 'home_form', 'away_form', 'head_to_head_home_win', 'head_to_head_away_win', 'head_to_head_draw']
     for feature in features:
-        df[feature] = 0
+        df[feature] = 0.0
         
     for index, row in df.iterrows():
         home_goals_scored, home_goals_conceded = team_stats(reference_df, row['HomeTeam'], 'home', row['Date'])
         away_goals_scored, away_goals_conceded = team_stats(reference_df, row['AwayTeam'], 'away', row['Date'])
+        
+        # Konvertieren Sie die Werte in den richtigen Datentyp
+        home_goals_scored = float(home_goals_scored)
+        home_goals_conceded = float(home_goals_conceded)
+        away_goals_scored = float(away_goals_scored)
+        away_goals_conceded = float(away_goals_conceded)
+        goal_difference = float(home_goals_scored - away_goals_conceded)
+        
+        # Setzen Sie die Werte in den DataFrame
         df.at[index, 'home_goals_scored'] = home_goals_scored
         df.at[index, 'home_goals_conceded'] = home_goals_conceded
         df.at[index, 'away_goals_scored'] = away_goals_scored
         df.at[index, 'away_goals_conceded'] = away_goals_conceded
-        df.at[index, 'goal_difference'] = home_goals_scored - away_goals_conceded
+        df.at[index, 'goal_difference'] = goal_difference
 
     return df
 
@@ -108,7 +133,7 @@ historical_data = compute_features(historical_data, historical_data)
 fixtures = compute_features(fixtures, historical_data)
 
 # Prepare Features and Target
-feature_columns = ['home_goals_scored', 'home_goals_conceded', 'away_goals_scored', 'away_goals_conceded', 'goal_difference', 'home_form', 'away_form']
+feature_columns = ['home_goals_scored', 'home_goals_conceded', 'away_goals_scored', 'away_goals_conceded', 'goal_difference', 'home_form', 'away_form', 'head_to_head_home_win', 'head_to_head_away_win', 'head_to_head_draw']
 X = historical_data[feature_columns]
 y = historical_data['FTR_encoded']
 
@@ -120,22 +145,24 @@ scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
-# Modified GridSearchCV with class weights
+# Model Parameter Tuning
 param_grid = {
-    'n_estimators': [100, 200, 300],
-    'max_depth': [None, 10, 20, 30],
-    'min_samples_split': [2, 5, 10],
-    'min_samples_leaf': [1, 2, 4]
+    'n_estimators': [100, 200],
+    'max_depth': [None, 20],
+    'min_samples_split': [2, 10],
+    'min_samples_leaf': [1, 4]
 }
 
 # Create class weights dictionary
-# Assuming 'H' = 0, 'D' = 1, 'A' = 2 in the encoded labels
-class_weights = {0: 1.0, 1: 1.2, 2: 1.0}
+class_weights = {0: 1.0, 1: 1.0, 2: 1.0}
+
+# Set up GridSearchCV with StratifiedKFold
+stratified_kfold = StratifiedKFold(n_splits=5)
 
 grid_search = GridSearchCV(
     RandomForestClassifier(random_state=42, class_weight=class_weights),
     param_grid,
-    cv=5,
+    cv=stratified_kfold,
     verbose=1,
     n_jobs=-1
 )
@@ -145,14 +172,16 @@ best_rf_model = grid_search.best_estimator_
 # Model Evaluation
 y_pred = best_rf_model.predict(X_test_scaled)
 print(f"Model Accuracy: {accuracy_score(y_test, y_pred)}")
-#print(classification_report(y_test, y_pred))
-#print("Confusion Matrix:")
-#print(confusion_matrix(y_test, y_pred))
 
-# Cross-validation scores
-cv_scores = cross_val_score(best_rf_model, X_train_scaled, y_train, cv=5)
-#print(f"Cross-validation Scores: {cv_scores}")
-#print(f"Mean CV Score: {cv_scores.mean()}")
+# Generate the confusion matrix
+conf_matrix = confusion_matrix(y_test, y_pred)
+print("Confusion Matrix:")
+print(conf_matrix)
+
+# Generate a classification report
+class_report = classification_report(y_test, y_pred, target_names=['Home Win', 'Draw', 'Away Win'])
+print("Classification Report:")
+print(class_report)
 
 # Get predictions and probabilities for fixtures
 fixtures_scaled = scaler.transform(fixtures[feature_columns])
@@ -164,13 +193,14 @@ fixtures['Prob_H'] = probabilities[:, 0]  # Home win probability
 fixtures['Prob_D'] = probabilities[:, 1]  # Draw probability
 fixtures['Prob_A'] = probabilities[:, 2]  # Away win probability
 
-# Prepare the final dataframe for export
-predictions_df = fixtures[['Div', 'Date', 'Time', 'HomeTeam', 'AwayTeam', 
-                         'Predicted Result', 'B365H', 'B365D', 'B365A',
-                         'Prob_H', 'Prob_D', 'Prob_A']]
+# Create a mapping to decode the numerical prediction back to 'H', 'D', 'A'
+reverse_label_mapping = {0: 'H', 1: 'D', 2: 'A'}
 
-# Create the data/predictions directory if it doesn't exist
-import os
+# Decode the predictions back to 'H', 'D', 'A'
+fixtures['Prediction'] = fixtures['Predicted Result'].map(reverse_label_mapping)
+
+# Prepare the final dataframe for export
+predictions_df = fixtures[['Div', 'Date', 'Time', 'HomeTeam', 'AwayTeam', 'Prediction', 'B365H', 'B365D', 'B365A', 'Prob_H', 'Prob_D', 'Prob_A']]
 
 # Create the data/predictions directory if it doesn't exist
 os.makedirs('data/predictions', exist_ok=True)
