@@ -206,8 +206,8 @@ fixtures['Prob_H'] = fixtures['Prob_H'].round(4)
 fixtures['Prob_D'] = fixtures['Prob_D'].round(4)
 fixtures['Prob_A'] = fixtures['Prob_A'].round(4)
 
-# Add a 'Best Bet' column based on the specified conditions
-fixtures['Best Bet'] = ((fixtures['Prob_H'] > 0.65) | (fixtures['Prob_A'] > 0.62)).astype(int)
+# Add a 'High Confidence Bet' column based on the specified conditions
+fixtures['High Confidence Bet'] = ((fixtures['Prob_H'] > 0.65) | (fixtures['Prob_A'] > 0.62)).astype(int)
 
 #Add Weekday
 fixtures['Weekday'] = fixtures['Date'].dt.day_name()
@@ -221,14 +221,14 @@ predictions_df = fixtures[['Div', 'Date', 'Weekday' ,'Time', 'HomeTeam', 'AwayTe
 predictions_df.sort_values(["Date", "Time"], inplace=True)
 print(predictions_df[predictions_df['Best Bet'] == 1])
 
-# Create the data/predictions directory if it doesn't exist
-os.makedirs('data/predictions', exist_ok=True)
+# Create the predictions directory if it doesn't exist
+os.makedirs('predictions', exist_ok=True)
 
 # Find the next available filename
 i = 1
-while os.path.exists(f'data/predictions/predictions_{i}.csv'):
+while os.path.exists(f'predictions/predictions_{i}.csv'):
     i += 1
 
 # Export to CSV with the new filename
-predictions_df.to_csv(f'data/predictions/predictions_{i}.csv', index=False)
+predictions_df.to_csv(f'predictions/predictions_{i}.csv', index=False)
 print(f"Predictions exported to data/predictions/predictions_{i}.csv")
