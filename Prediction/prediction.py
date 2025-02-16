@@ -199,8 +199,17 @@ reverse_label_mapping = {0: 'H', 1: 'D', 2: 'A'}
 # Decode the predictions back to 'H', 'D', 'A'
 fixtures['Prediction'] = fixtures['Predicted Result'].map(reverse_label_mapping)
 
+fixtures['Prob_H'] = fixtures['Prob_H'].round(4)
+fixtures['Prob_D'] = fixtures['Prob_D'].round(4)
+fixtures['Prob_A'] = fixtures['Prob_A'].round(4)
+
+# Add a 'Best Bet' column based on the specified conditions
+fixtures['Best Bet'] = ((fixtures['Prob_H'] > 0.65) | (fixtures['Prob_A'] > 0.62)).astype(int)
+
 # Prepare the final dataframe for export
-predictions_df = fixtures[['Div', 'Date', 'Time', 'HomeTeam', 'AwayTeam', 'Prediction', 'B365H', 'B365D', 'B365A', 'Prob_H', 'Prob_D', 'Prob_A']]
+predictions_df = fixtures[['Div', 'Date', 'Time', 'HomeTeam', 'AwayTeam', 'Prediction', 'B365H', 'B365D', 'B365A', 'Prob_H', 'Prob_D', 'Prob_A', 'Best Bet']]
+predictions_df.sort_values(["Date", "Time"], inplace=True)
+print(predictions_df[predictions_df['Best Bet'] == 1])
 
 # Create the data/predictions directory if it doesn't exist
 os.makedirs('data/predictions', exist_ok=True)
