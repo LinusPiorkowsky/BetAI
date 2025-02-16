@@ -38,6 +38,10 @@ def get_latest_prediction():
     now = datetime.now()
     df = df[df["MatchDateTime"] + timedelta(hours=2.5) > now]
 
+    # Capitalize team names for consistent display
+    df["HomeTeam"] = df["HomeTeam"].apply(lambda x: x.capitalize())
+    df["AwayTeam"] = df["AwayTeam"].apply(lambda x: x.capitalize())
+
     return df
 
 @app.route("/")
@@ -47,7 +51,7 @@ def index():
         return render_template("index.html", predictions=None, date_range="", leagues=[], leagues_dict=LEAGUE_NAMES)
 
     # Sort matches by date and time
-    df = df.sort_values(by=["Date", "Time"])
+    df = df.sort_values(by=["MatchDateTime"])
 
     # Format the date range for the header
     first_date = df["Date"].min().strftime("%d/%m/%Y")

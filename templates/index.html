@@ -33,7 +33,7 @@
         }
         .container {
             max-width: 420px;
-            margin: 0 auto;
+            margin: auto;
         }
         .match-card {
             background: #1e1e1e;
@@ -86,17 +86,18 @@
     <script>
         function filterMatches() {
             var league = document.getElementById("leagueFilter").value;
+            var bestBetsOnly = document.getElementById("bestBetsCheckbox").checked;
             var matches = document.getElementsByClassName("match-card");
 
             for (var i = 0; i < matches.length; i++) {
                 var match = matches[i];
                 var matchLeague = match.getAttribute("data-league");
+                var matchBestBet = match.getAttribute("data-best-bet");
 
-                if (league === "all" || matchLeague === league) {
-                    match.style.display = "block";
-                } else {
-                    match.style.display = "none";
-                }
+                var shouldDisplay = (league === "all" || matchLeague === league) &&
+                                    (!bestBetsOnly || (bestBetsOnly && matchBestBet === "1"));
+
+                match.style.display = shouldDisplay ? "block" : "none";
             }
         }
     </script>
@@ -108,54 +109,49 @@
         <a href="/logic">Logic</a>
     </div>
 
-    {% if predictions %}
-        <h1>Predictions for {{ date_range }}</h1>
+    <h1>Predictions for {{ date_range }}</h1>
 
-        <div class="filters">
-            <select id="leagueFilter" onchange="filterMatches()">
-                <option value="all">All Leagues</option>
-                {% for league in leagues %}
-                <option value="{{ league }}">{{ leagues_dict[league] }}</option>
-                {% endfor %}
-            </select>
-        </div>
+    <div class="filters">
+        <select id="leagueFilter" onchange="filterMatches()">
+            <option value="all">All Leagues</option>
+            {% for league in leagues %}
+            <option value="{{ league }}">{{ leagues_dict[league] }}</option>
+            {% endfor %}
+        </select>
+        <label>
+            <input type="checkbox" id="bestBetsCheckbox" onchange="filterMatches()">
+            Best Bets Only
+        </label>
+    </div>
 
-        <div class="container">
+    <div class="container">
+        {% if predictions %}
             {% for match in predictions %}
-            <div class="match-card" data-league="{{ match.Div }}">
+            <div class="match-card" data-league="{{ match.Div }}" data-best-bet="{{ match['Best Bet'] }}">
                 <div class="time">{{ match.Time }}</div>
-                <div class="match-teams">{{ match.HomeTeam.split(' ') | map('capitalize') | join(' ') }} vs {{ match.AwayTeam.split(' ') | map('capitalize') | join(' ') }}</div>
-
+                <div class="match-teams">{{ match.HomeTeam }} vs {{ match.AwayTeam }}</div>
                 <div class="prediction">
                     Prediction: <strong>
-                        {% if match.Predicted_Result == 0 %}
-                            {{ match.HomeTeam.split(' ') | map('capitalize') | join(' ') }} ({{ match.B365H }})
-                        {% elif match.Predicted_Result == 1 %}
+                        {% if match.Prediction == 'H' %}
+                            {{ match.HomeTeam }} Win ({{ match.B365H }})
+                        {% elif match.Prediction == 'D' %}
                             Draw ({{ match.B365D }})
                         {% else %}
-                            {{ match.AwayTeam.split(' ') | map('capitalize') | join(' ') }} ({{ match.B365A }})
+                            {{ match.AwayTeam }} Win ({{ match.B365A }})
                         {% endif %}
                     </strong>
                 </div>
-
                 <div class="probabilities">
-                    <div class="prob" style="background-color: {% if match.Prob_H >= 0.50 %}#4caf50{% elif match.Prob_H >= 0.35 %}#ffc107{% else %}#f44336{% endif %};">
-                          {{ match.HomeTeam.split(' ') | map('capitalize') | join(' ') }} {{ "%.1f"|format(match.Prob_H * 100) }}%
-                    </div>
-                    <div class="prob" style="background-color: {% if match.Prob_D >= 0.50 %}#4caf50{% elif match.Prob_D >= 0.35 %}#ffc107{% else %}#f44336{% endif %};">
-                          Draw {{ "%.1f"|format(match.Prob_D * 100) }}%
-                    </div>
-                    <div class="prob" style="background-color: {% if match.Prob_A >= 0.50 %}#4caf50{% elif match.Prob_A >= 0.35 %}#ffc107{% else %}#f44336{% endif %};">
-                          {{ match.AwayTeam.split(' ') | map('capitalize') | join(' ') }} {{ "%.1f"|format(match.Prob_A * 100) }}%
-                    </div>
+                    <div class="prob" style="background-color: #4caf50;">{{ match.HomeTeam }} {{ "%.1f"|format(match.Prob_H * 100) }}%</div>
+                    <div class="prob" style="background-color: #ffeb3b;">Draw {{ "%.1f"|format(match.Prob_D * 100) }}%</div>
+                    <div class="prob" style="background-color: #f44336;">{{ match.AwayTeam }} {{ "%.1f"|format(match.Prob_A * 100) }}%</div>
                 </div>
-
                 <div class="odds">Odds: H {{ match.B365H }}, D {{ match.B365D }}, A {{ match.B365A }}</div>
             </div>
             {% endfor %}
-        </div>
-    {% else %}
-        <h1>No predictions available.</h1>
-    {% endif %}
+        {% else %}
+            <p>No matches to display at the moment.</p>
+        {% endif %}
+    </div>
 </body>
 </html>
