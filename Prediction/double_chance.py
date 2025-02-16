@@ -11,7 +11,7 @@ import os
 timezone = 1
 
 # Define seasons and leagues
-seasons = ['2019_20', '2020_21', '2021_22', '2022_23', '2023_24', '2024_25']
+seasons = ['2017_18', '2018_19', '2019_20', '2020_21', '2021_22', '2022_23', '2023_24', '2024_25']
 leagues = ['D1', 'F1', 'E0', 'I1', 'SP1']
 
 def load_and_prepare_data():
@@ -238,7 +238,7 @@ def main():
     fixtures['Prob_1X'] = probabilities[:, 0].round(4)
     fixtures['Prob_X2'] = probabilities[:, 1].round(4)
     fixtures['Prediction'] = best_model.predict(fixtures_scaled)
-    fixtures['Prediction'] = fixtures['Prediction'].map({0: 'H+D', 1: 'A+D'})
+    fixtures['Prediction'] = fixtures['Prediction'].map({0: '1X', 1: 'X2'})
     
     # Calculate double chance odds
     fixtures['Odd_1X'] = (1 / (1/fixtures['B365H'] + 1/fixtures['B365D'])).round(2)
