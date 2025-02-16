@@ -7,6 +7,9 @@ from sklearn.preprocessing import StandardScaler
 from collections import defaultdict
 import os
 
+# Define the timezone offset
+timezone = 1
+
 # Define seasons and leagues
 seasons = ['2019_20', '2020_21', '2021_22', '2022_23', '2023_24', '2024_25']
 leagues = ['D1', 'F1', 'E0', 'I1', 'SP1']
@@ -206,8 +209,15 @@ fixtures['Prob_A'] = fixtures['Prob_A'].round(4)
 # Add a 'Best Bet' column based on the specified conditions
 fixtures['Best Bet'] = ((fixtures['Prob_H'] > 0.65) | (fixtures['Prob_A'] > 0.62)).astype(int)
 
+#Add Weekday
+fixtures['Weekday'] = fixtures['Date'].dt.day_name()
+
+#Add timezones
+fixtures['Time'] = (pd.to_datetime(fixtures['Time'].astype(str)) + pd.Timedelta(hours=timezone)).dt.time
+fixtures['Time'] = fixtures['Time'].apply(lambda x: f"{x.hour:02}:{x.minute:02}" if pd.notnull(x) else x)
+
 # Prepare the final dataframe for export
-predictions_df = fixtures[['Div', 'Date', 'Time', 'HomeTeam', 'AwayTeam', 'Prediction', 'B365H', 'B365D', 'B365A', 'Prob_H', 'Prob_D', 'Prob_A', 'Best Bet']]
+predictions_df = fixtures[['Div', 'Date', 'Weekday' ,'Time', 'HomeTeam', 'AwayTeam', 'Prediction', 'B365H', 'B365D', 'B365A', 'Prob_H', 'Prob_D', 'Prob_A', 'Best Bet']]
 predictions_df.sort_values(["Date", "Time"], inplace=True)
 print(predictions_df[predictions_df['Best Bet'] == 1])
 
