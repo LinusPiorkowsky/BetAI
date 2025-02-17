@@ -174,3 +174,5 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 pdf_creater.py
+comparison.py
+calculation.py
