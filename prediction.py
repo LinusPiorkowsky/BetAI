@@ -206,8 +206,8 @@ fixtures['Prob_H'] = fixtures['Prob_H'].round(4)
 fixtures['Prob_D'] = fixtures['Prob_D'].round(4)
 fixtures['Prob_A'] = fixtures['Prob_A'].round(4)
 
-# Add a 'High Confidence Bet' column based on the specified conditions
-fixtures['High Confidence Bet'] = ((fixtures['Prob_H'] > 0.65) | (fixtures['Prob_A'] > 0.62)).astype(int)
+# Add a 'High_conf' column based on the specified conditions
+fixtures['High_conf'] = ((fixtures['Prob_H'] > 0.65) | (fixtures['Prob_A'] > 0.62)).astype(int)
 
 #Add Weekday
 fixtures['Weekday'] = fixtures['Date'].dt.day_name()
@@ -216,10 +216,33 @@ fixtures['Weekday'] = fixtures['Date'].dt.day_name()
 fixtures['Time'] = (pd.to_datetime(fixtures['Time'].astype(str)) + pd.Timedelta(hours=timezone)).dt.time
 fixtures['Time'] = fixtures['Time'].apply(lambda x: f"{x.hour:02}:{x.minute:02}" if pd.notnull(x) else x)
 
+# Add double chance
+fixtures['double_chance'] = fixtures.apply(lambda row: '1X' if row['Prob_H'] + row['Prob_D'] > row['Prob_A'] + row['Prob_D'] else 'X2', axis=1)
+
+# Add double chance odds
+fixtures['1X_odds'] = ((fixtures['B365H'] * fixtures['B365D']) / (fixtures['B365H'] + fixtures['B365D'])) - 0.2
+fixtures['X2_odds'] = (fixtures['B365D'] * fixtures['B365A']) / (fixtures['B365D'] + fixtures['B365A']) - 0.15
+
+#Add double chance probabilities
+fixtures['1X_prob'] = fixtures['Prob_H'] + fixtures['Prob_D']
+fixtures['X2_prob'] = fixtures['Prob_D'] + fixtures['Prob_A']
+
+# add high confidence double chance
+fixtures['High_conf_dc'] = ((fixtures['1X_prob'] > 0.80) | (fixtures['X2_prob'] > 0.75)).astype(int)
+
 # Prepare the final dataframe for export
-predictions_df = fixtures[['Div', 'Date', 'Weekday' ,'Time', 'HomeTeam', 'AwayTeam', 'Prediction', 'B365H', 'B365D', 'B365A', 'Prob_H', 'Prob_D', 'Prob_A', 'Best Bet']]
+predictions_df = fixtures[['Div', 'Date', 'Weekday' ,'Time', 'HomeTeam', 'AwayTeam', 'Prediction', 'B365H', 'B365D', 'B365A', 'Prob_H', 'Prob_D', 'Prob_A', 'double_chance', '1X_odds', 'X2_odds', '1X_prob', 'X2_prob', 'High_conf', 'High_conf_dc']]
 predictions_df.sort_values(["Date", "Time"], inplace=True)
-print(predictions_df[predictions_df['Best Bet'] == 1])
+
+# Display the predictions
+print("Predictions:")
+predictions = predictions_df[['Div','Date', 'Weekday' ,'Time', 'HomeTeam', 'AwayTeam','Prediction', 'Prob_H', 'Prob_D', 'Prob_A', 'High_conf']]
+print(predictions[predictions['High_conf'] == 1])
+
+# Display the double chance predictions
+print("\nDouble Chance Predictions:")
+predictions_dc = predictions_df[['Div','Date', 'Weekday' ,'Time', 'HomeTeam', 'AwayTeam','double_chance', '1X_odds', 'X2_odds', '1X_prob', 'X2_prob','High_conf_dc']]
+print(predictions_dc[predictions_dc['High_conf_dc'] == 1])
 
 # Create the predictions directory if it doesn't exist
 os.makedirs('predictions', exist_ok=True)
