@@ -402,8 +402,8 @@ print(predictions[predictions['High_conf'] == 1])
 # Display the double chance predictions
 print("\nDouble Chance Predictions:")
 predictions_dc = predictions_df[['Div', 'Date', 'Weekday', 'Time', 'HomeTeam', 'AwayTeam',
-                               'double_chance', '1X_prob', 'X2_prob', '1X_odds', 'X2_odds', 'High_conf_dc']]
-print(predictions_dc[predictions_dc['High_conf_dc'] == 1])
+                               'double_chance', '1X_prob', 'X2_prob', '1X_odds', 'X2_odds', 'High_conf', 'High_conf_dc']]
+print(predictions_dc[(predictions_dc['High_conf_dc'] == 1) & (predictions_dc['High_conf'] == 1)])
 
 # Create the predictions directory if it doesn't exist
 os.makedirs('predictions', exist_ok=True)
