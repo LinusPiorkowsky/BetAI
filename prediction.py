@@ -220,8 +220,8 @@ fixtures['Time'] = fixtures['Time'].apply(lambda x: f"{x.hour:02}:{x.minute:02}"
 fixtures['double_chance'] = fixtures.apply(lambda row: '1X' if row['Prob_H'] + row['Prob_D'] > row['Prob_A'] + row['Prob_D'] else 'X2', axis=1)
 
 # Add double chance odds
-fixtures['1X_odds'] = ((fixtures['B365H'] * fixtures['B365D']) / (fixtures['B365H'] + fixtures['B365D'])) - 0.2
-fixtures['X2_odds'] = (fixtures['B365D'] * fixtures['B365A']) / (fixtures['B365D'] + fixtures['B365A']) - 0.15
+fixtures['1X_odds'] = ((fixtures['B365H'] * fixtures['B365D']) / (fixtures['B365H'] + fixtures['B365D'])) 
+fixtures['X2_odds'] = (fixtures['B365D'] * fixtures['B365A']) / (fixtures['B365D'] + fixtures['B365A'])
 
 #Add double chance probabilities
 fixtures['1X_prob'] = fixtures['Prob_H'] + fixtures['Prob_D']
