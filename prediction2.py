@@ -347,7 +347,7 @@ fixtures['Prob_D'] = fixtures['Prob_D'].round(4)
 fixtures['Prob_A'] = fixtures['Prob_A'].round(4)
 
 # Add a 'High_conf' column based on the specified conditions
-fixtures['High_conf'] = ((fixtures['Prob_H'] > 0.65) | (fixtures['Prob_A'] > 0.62)).astype(int)
+fixtures['High_conf'] = ((fixtures['Prob_H'] > 0.7) | (fixtures['Prob_A'] > 0.67)).astype(int)
 
 # Add Weekday
 fixtures['Weekday'] = fixtures['Date'].dt.day_name()
@@ -374,13 +374,24 @@ fixtures['1X_prob'] = fixtures['1X_prob'].round(4)
 fixtures['X2_prob'] = fixtures['X2_prob'].round(4)
 
 # add high confidence double chance
-fixtures['High_conf_dc'] = ((fixtures['1X_prob'] > 0.80) | (fixtures['X2_prob'] > 0.75)).astype(int)
+fixtures['High_conf_dc'] = ((fixtures['1X_prob'] > 0.90) | (fixtures['X2_prob'] > 0.87)).astype(int)
 
 # Prepare the final dataframe for export
 predictions_df = fixtures[['Div', 'Date', 'Weekday', 'Time', 'HomeTeam', 'AwayTeam', 'Prediction', 
                           'B365H', 'B365D', 'B365A', 'Prob_H', 'Prob_D', 'Prob_A', 'double_chance',
                           '1X_odds', 'X2_odds', '1X_prob', 'X2_prob', 'High_conf', 'High_conf_dc']]
 predictions_df.sort_values(["Date", "Time"], inplace=True)
+
+# Angenommen, best_rf_model ist Ihr trainiertes Random Forest Modell
+feature_importances = best_rf_model.feature_importances_
+# Erstellen Sie ein DataFrame, um die Merkmale und ihre Gewichtungen anzuzeigen
+feature_importance_df = pd.DataFrame({
+    'Feature': feature_columns,
+    'Importance': feature_importances
+})
+# Sortieren Sie die Merkmale nach ihrer Wichtigkeit
+feature_importance_df = feature_importance_df.sort_values(by='Importance', ascending=False)
+# print(feature_importance_df)
 
 # Display the predictions
 print("Predictions:")
