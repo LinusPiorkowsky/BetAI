@@ -141,7 +141,19 @@ X = historical_data[feature_columns]
 y = historical_data['FTR_encoded']
 
 # Train/Test Split
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+# Ensure the split only uses data up to a certain date for training
+split_date = pd.to_datetime('2023-01-01')
+train_data = historical_data[historical_data['Date'] < split_date]
+test_data = historical_data[historical_data['Date'] >= split_date]
+
+X_train = train_data[feature_columns]
+y_train = train_data['FTR_encoded']
+X_test = test_data[feature_columns]
+y_test = test_data['FTR_encoded']
+
+# For prediction on fixtures, use the entire historical data as reference
+reference_data = historical_data[historical_data['Date'] < pd.to_datetime('2024-01-01')]
+fixtures = compute_features(fixtures, reference_data)
 
 # Feature Scaling (for other models like SVM, not necessary for RandomForest)
 scaler = StandardScaler()
@@ -186,6 +198,28 @@ class_report = classification_report(y_test, y_pred, target_names=['Home Win', '
 print("Classification Report:")
 print(class_report)
 
+# double chance evaluation 1X, X2 
+double_chance_predictions = []
+for index, row in test_data.iterrows():
+    if row['FTR'] == 'H' or row['FTR'] == 'D':
+        double_chance_predictions.append(0)  # 1X
+    elif row['FTR'] == 'A' or row['FTR'] == 'D':
+        double_chance_predictions.append(2)  # X2
+
+double_chance_predictions = np.array(double_chance_predictions)
+double_chance_accuracy = accuracy_score(double_chance_predictions, y_pred)
+print(f"Double Chance Accuracy: {double_chance_accuracy}")
+
+# confusion matrix for double chance
+double_chance_conf_matrix = confusion_matrix(double_chance_predictions, y_pred)
+print("Double Chance Confusion Matrix:")
+print(double_chance_conf_matrix)
+
+# Fit the model on the entire historical data
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+best_rf_model.fit(X_scaled, y)
+
 # Get predictions and probabilities for fixtures
 fixtures_scaled = scaler.transform(fixtures[feature_columns])
 fixtures['Predicted Result'] = best_rf_model.predict(fixtures_scaled)
@@ -213,7 +247,7 @@ fixtures['High_conf'] = ((fixtures['Prob_H'] > 0.65) | (fixtures['Prob_A'] > 0.6
 fixtures['Weekday'] = fixtures['Date'].dt.day_name()
 
 #Add timezones
-fixtures['Time'] = (pd.to_datetime(fixtures['Time'].astype(str)) + pd.Timedelta(hours=timezone)).dt.time
+fixtures.loc[:, 'Time'] = (pd.to_datetime(fixtures['Time'].astype(str), format='%H:%M:%S') + pd.Timedelta(hours=timezone)).dt.time
 fixtures['Time'] = fixtures['Time'].apply(lambda x: f"{x.hour:02}:{x.minute:02}" if pd.notnull(x) else x)
 
 # Add double chance
@@ -221,11 +255,17 @@ fixtures['double_chance'] = fixtures.apply(lambda row: '1X' if row['Prob_H'] + r
 
 # Add double chance odds
 fixtures['1X_odds'] = ((fixtures['B365H'] * fixtures['B365D']) / (fixtures['B365H'] + fixtures['B365D'])) 
-fixtures['X2_odds'] = (fixtures['B365D'] * fixtures['B365A']) / (fixtures['B365D'] + fixtures['B365A'])
+fixtures['X2_odds'] = ((fixtures['B365D'] * fixtures['B365A']) / (fixtures['B365D'] + fixtures['B365A']))
 
 #Add double chance probabilities
 fixtures['1X_prob'] = fixtures['Prob_H'] + fixtures['Prob_D']
 fixtures['X2_prob'] = fixtures['Prob_D'] + fixtures['Prob_A']
+
+# round the odds and probabilities
+fixtures['1X_odds'] = fixtures['1X_odds'].round(4)
+fixtures['X2_odds'] = fixtures['X2_odds'].round(4)
+fixtures['1X_prob'] = fixtures['1X_prob'].round(4)
+fixtures['X2_prob'] = fixtures['X2_prob'].round(4)
 
 # add high confidence double chance
 fixtures['High_conf_dc'] = ((fixtures['1X_prob'] > 0.80) | (fixtures['X2_prob'] > 0.75)).astype(int)
@@ -236,7 +276,7 @@ predictions_df.sort_values(["Date", "Time"], inplace=True)
 
 # Display the predictions
 print("Predictions:")
-predictions = predictions_df[['Div','Date', 'Weekday' ,'Time', 'HomeTeam', 'AwayTeam','Prediction', 'Prob_H', 'Prob_D', 'Prob_A', 'High_conf']]
+predictions = predictions_df[['Div', 'Date', 'Weekday', 'Time', 'HomeTeam', 'AwayTeam', 'Prediction', 'B365H', 'B365D', 'B365A', 'Prob_H', 'Prob_D', 'Prob_A', 'High_conf']]
 print(predictions[predictions['High_conf'] == 1])
 
 # Display the double chance predictions
