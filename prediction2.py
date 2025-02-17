@@ -321,23 +321,6 @@ class_report = classification_report(y_test, y_pred, target_names=['Home Win', '
 print("Classification Report:")
 print(class_report)
 
-# double chance evaluation 1X, X2 
-double_chance_predictions = []
-for index, row in test_data.iterrows():
-    if row['FTR'] == 'H' or row['FTR'] == 'D':
-        double_chance_predictions.append(0)  # 1X
-    elif row['FTR'] == 'A' or row['FTR'] == 'D':
-        double_chance_predictions.append(2)  # X2
-
-double_chance_predictions = np.array(double_chance_predictions)
-double_chance_accuracy = accuracy_score(double_chance_predictions, y_pred)
-print(f"Double Chance Accuracy: {double_chance_accuracy}")
-
-# confusion matrix for double chance
-double_chance_conf_matrix = confusion_matrix(double_chance_predictions, y_pred)
-print("Double Chance Confusion Matrix:")
-print(double_chance_conf_matrix)
-
 # Fit the model on the entire historical data
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
