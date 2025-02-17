@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ML Bets - Informations</title>
+  <!-- Link to CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body>
+  <!-- Navigation -->
+  <nav>
+    <div class="nav-left">ML Bets</div>
+    <div class="nav-right">
+      <a href="{{ url_for('index') }}">Home</a>
+      <a href="{{ url_for('predictions') }}">Predictions</a>
+      <a href="{{ url_for('results') }}">Results</a>
+      <a href="{{ url_for('informations') }}">Informations</a>
+    </div>
+  </nav>
+
+  <!-- Page Content -->
+  <header>
+    <h2>Information Center</h2>
+    <p class="date-range">
+      Learn more about our ML models, data sources, and methodology.
+    </p>
+  </header>
+
+  <div class="cards-container">
+    <div class="prediction-card">
+      <div class="card-top">
+        <span>About Our Models</span>
+      </div>
+      <div class="card-middle">
+        <p>
+          We use state-of-the-art machine learning algorithms to analyze
+          historical match data, player stats, and other relevant factors.
+        </p>
+      </div>
+      <div class="card-bottom">
+        <p>Accuracy is continuously monitored and improved over time.</p>
+      </div>
+    </div>
+
+    <div class="prediction-card">
+      <div class="card-top">
+        <span>Data Sources</span>
+      </div>
+      <div class="card-middle">
+        <p>
+          We gather data from trusted sports APIs, official league
+          statistics, and historical archives for training our models.
+        </p>
+      </div>
+      <div class="card-bottom">
+        <p>Ensuring high data quality is a critical part of our workflow.</p>
+      </div>
+    </div>
+
+    <div class="prediction-card">
+      <div class="card-top">
+        <span>Methodology</span>
+      </div>
+      <div class="card-middle">
+        <p>
+          Our ensemble approach combines multiple prediction models to
+          achieve balanced and robust forecasts.
+        </p>
+      </div>
+      <div class="card-bottom">
+        <p>Learn more about our ensemble strategies by contacting us!</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

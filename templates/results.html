@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ML Bets - Home</title>
+  <title>ML Bets - Results</title>
   <!-- Link to CSS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
 </head>
@@ -21,24 +21,32 @@
 
   <!-- Page Content -->
   <header>
-    <h1>Welcome to the ML Bets Platform</h1>
-    <p class="date-range">Your place for machine learning-driven betting predictions.</p>
+    <h2>Past Results</h2>
+    <p class="date-range">Review the accuracy of our previous predictions.</p>
   </header>
 
   <div class="cards-container">
+    <!-- Example result card -->
     <div class="prediction-card">
       <div class="card-top">
-        <p>Today’s Highlights</p>
+        <span>Saturday, Feb 17</span>
       </div>
       <div class="card-middle">
         <div class="matchup">
-          <span>Explore the power of AI-driven predictions!</span>
+          <span>Team A vs Team B</span>
+        </div>
+        <div class="prediction-info">
+          Predicted Winner: <span class="highlight">Team A</span>
         </div>
       </div>
       <div class="card-bottom">
-        <p>Check out our Predictions to see what we have for you.</p>
+        <span>Actual Result: Team A 3 - 1 Team B</span>
+        <br />
+        <span>Prediction Accuracy: 85%</span>
       </div>
     </div>
+
+    <!-- Add more results cards as needed -->
   </div>
 </body>
 </html>
