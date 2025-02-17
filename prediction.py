@@ -262,8 +262,8 @@ fixtures['1X_prob'] = fixtures['Prob_H'] + fixtures['Prob_D']
 fixtures['X2_prob'] = fixtures['Prob_D'] + fixtures['Prob_A']
 
 # round the odds and probabilities
-fixtures['1X_odds'] = fixtures['1X_odds'].round(4)
-fixtures['X2_odds'] = fixtures['X2_odds'].round(4)
+fixtures['1X_odds'] = fixtures['1X_odds'].round(2)
+fixtures['X2_odds'] = fixtures['X2_odds'].round(2)
 fixtures['1X_prob'] = fixtures['1X_prob'].round(4)
 fixtures['X2_prob'] = fixtures['X2_prob'].round(4)
 
@@ -281,7 +281,7 @@ print(predictions[predictions['High_conf'] == 1])
 
 # Display the double chance predictions
 print("\nDouble Chance Predictions:")
-predictions_dc = predictions_df[['Div','Date', 'Weekday' ,'Time', 'HomeTeam', 'AwayTeam','double_chance', '1X_odds', 'X2_odds', '1X_prob', 'X2_prob','High_conf_dc']]
+predictions_dc = predictions_df[['Div','Date', 'Weekday' ,'Time', 'HomeTeam', 'AwayTeam','double_chance', '1X_prob', 'X2_prob', '1X_odds', 'X2_odds','High_conf_dc']]
 print(predictions_dc[predictions_dc['High_conf_dc'] == 1])
 
 # Create the predictions directory if it doesn't exist
