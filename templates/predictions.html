@@ -42,8 +42,9 @@
       </select>
 
       <label for="high-conf">
-        <input type="checkbox" id="high-conf" checked>
-        High Confidence Bets
+        <input type="checkbox" id="high-conf">
+        High Confidence 
+        <span class="tooltip" data-tooltip="High Confidence means that the prediction has a high probability of being correct.">?</span>
       </label>
     </div>
   </header>
@@ -61,14 +62,28 @@
           {% set predicted_team = p['HomeTeam'] %}
           {% set predicted_prob = p['Prob_H'] %}
           {% set predicted_odd = p['B365H'] %}
+          {% set predicted_bet = p['HomeTeam'] %}
+          {% set predicted_prob2 = p['Prob_H'] %}
         {% elif p['Prediction'] == 'D' %}
           {% set predicted_team = 'Draw' %}
           {% set predicted_prob = p['Prob_D'] %}
-          {% set predicted_odd = p['B365D'] %}
+          {% if p['Prob_H'] + p['Prob_D'] > p['Prob_D'] + p['Prob_A'] %}
+            {% set predicted_bet = p['HomeTeam']+' 1X'  %}
+            {% set predicted_prob2 = p['1X_prob'] %}
+          {% else %}
+            {% set predicted_bet = p['AwayTeam']+' X2'  %}
+            {% set predicted_prob2 = p['X2_prob'] %}
+          {% endif %}
         {% elif p['Prediction'] == 'A' %}
           {% set predicted_team = p['AwayTeam'] %}
           {% set predicted_prob = p['Prob_A'] %}
-          {% set predicted_odd = p['B365A'] %}
+          {% if p['High_conf'] == 1 %}
+            {% set predicted_bet = p['AwayTeam'] %}
+            {% set predicted_prob2 = p['Prob_A'] %}
+          {% else %}
+            {% set predicted_bet = p['AwayTeam']+' X2' %}
+            {% set predicted_prob2 = p['X2_prob'] %}
+          {% endif %}
         {% endif %}
 
         <div 
@@ -89,25 +104,20 @@
             </div>
             <!-- Predicted Team + Probability + Odd -->
             <div class="prediction-info">
-              Predicted: <span class="highlight">{{ predicted_team }}</span>
+              Prediction: <span class="highlight">{{ predicted_team }} {{ (predicted_prob * 100) | round(1) }}%</span>
               <br>
-              Probability: 
-              <span class="highlight">
-                {{ (predicted_prob * 100) | round(1) }}%
-              </span>
-              &nbsp;|&nbsp;
-              Odd: 
-              <span class="highlight">
-                {{ predicted_odd }}
+              Bet: 
+              <span class="highlight"> {{ predicted_bet }} Probability: {{ (predicted_prob2 * 100) | round(1) }}%
               </span>
             </div>
           </div>
 
           <!-- Bottom: All Odds -->
           <div class="card-bottom">
-            All Odds (Home / Draw / Away): 
             <br>
-            <span>H: {{ p['B365H'] }} | D: {{ p['B365D'] }} | A: {{ p['B365A'] }}</span>
+            <span>{{ p['HomeTeam'] }}: {{ p['B365H'] }} | Draw: {{ p['B365D'] }} | {{ p['AwayTeam'] }}: {{ p['B365A'] }}</span>
+            <br>
+            <span>1X: {{ p['1X_odds'] }} | X2: {{ p['X2_odds'] }}</span>
           </div>
         </div>
       {% endfor %}
