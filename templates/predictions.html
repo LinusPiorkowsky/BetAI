@@ -61,18 +61,26 @@
         {% if p['Prediction'] == 'H' %}
           {% set predicted_team = p['HomeTeam'] %}
           {% set predicted_prob = p['Prob_H'] %}
-          {% set predicted_odd = p['B365H'] %}
-          {% set predicted_bet = p['HomeTeam'] %}
-          {% set predicted_prob2 = p['Prob_H'] %}
+          {% if p['Prob_H'] <= 0,6 %}
+            {% set predicted_odd = p['1X_odds'] %}
+            {% set predicted_bet = '1X' %}
+            {% set predicted_prob2 = p['1X_prob'] %}
+          {% else %}
+            {% set predicted_odd = p['B365H'] %}
+            {% set predicted_bet = p['HomeTeam'] %}
+            {% set predicted_prob2 = p['Prob_H'] %}
+          {% endif %}
         {% elif p['Prediction'] == 'D' %}
           {% set predicted_team = 'Draw' %}
           {% set predicted_prob = p['Prob_D'] %}
           {% if p['Prob_H'] + p['Prob_D'] > p['Prob_D'] + p['Prob_A'] %}
-            {% set predicted_bet = p['HomeTeam']+' 1X'  %}
+            {% set predicted_bet = '1X'  %}
             {% set predicted_prob2 = p['1X_prob'] %}
+            {% set predicted_odd = p['1X_odds'] %}
           {% else %}
-            {% set predicted_bet = p['AwayTeam']+' X2'  %}
+            {% set predicted_bet = 'X2'  %}
             {% set predicted_prob2 = p['X2_prob'] %}
+            {% set predicted_odd = p['X2_odds'] %}
           {% endif %}
         {% elif p['Prediction'] == 'A' %}
           {% set predicted_team = p['AwayTeam'] %}
@@ -80,9 +88,11 @@
           {% if p['High_conf'] == 1 %}
             {% set predicted_bet = p['AwayTeam'] %}
             {% set predicted_prob2 = p['Prob_A'] %}
+            {% set predicted_odd = p['B365A'] %}
           {% else %}
-            {% set predicted_bet = p['AwayTeam']+' X2' %}
+            {% set predicted_bet = 'X2' %}
             {% set predicted_prob2 = p['X2_prob'] %}
+            {% set predicted_odd = p['X2_odds'] %}
           {% endif %}
         {% endif %}
 
@@ -104,20 +114,18 @@
             </div>
             <!-- Predicted Team + Probability + Odd -->
             <div class="prediction-info">
-              Prediction: <span class="highlight">{{ predicted_team }} {{ (predicted_prob * 100) | round(1) }}%</span>
+              Prediction: <span class="highlight">{{ predicted_bet }} - {{ predicted_odd }}</span>
               <br>
-              Bet: 
-              <span class="highlight"> {{ predicted_bet }} Probability: {{ (predicted_prob2 * 100) | round(1) }}%
-              </span>
+              Confidence:: <span class="highlight"> {{ (predicted_prob2 * 100) | round(1) }}%</span>
             </div>
           </div>
 
           <!-- Bottom: All Odds -->
           <div class="card-bottom">
             <br>
-            <span>{{ p['HomeTeam'] }}: {{ p['B365H'] }} | Draw: {{ p['B365D'] }} | {{ p['AwayTeam'] }}: {{ p['B365A'] }}</span>
-            <br>
             <span>1X: {{ p['1X_odds'] }} | X2: {{ p['X2_odds'] }}</span>
+            <br>
+            <span>{{ p['HomeTeam'] }}: {{ p['B365H'] }} | Draw: {{ p['B365D'] }} | {{ p['AwayTeam'] }}: {{ p['B365A'] }}</span>
           </div>
         </div>
       {% endfor %}
