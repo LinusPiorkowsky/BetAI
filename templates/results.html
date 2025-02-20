@@ -58,7 +58,7 @@
     {% if results is not none and results.shape[0] > 0 %}
       {% for idx, p in results.iterrows() %}
         {# 
-          Let's color-code the card if BetCorrect = True => green border, else red.
+          We color-code the card if BetCorrect = True => green, else red
           We'll do it with a simple check for "correct" or "wrong".
         #}
         {% set correctness_class = 'correct' if p['BetCorrect'] else 'wrong' %}
@@ -91,30 +91,55 @@
               <span>{{ p['HomeTeam'] }} vs. {{ p['AwayTeam'] }}</span>
             </div>
 
-            <!-- Final Bet + Probability + Correctness -->
+            <!-- Start with the final bet as determined in your DataFrame -->
             <div class="prediction-info">
               {% set predicted_bet = p['FinalBet'] %}
-              {# Decide an odd & probability for display #}
               {% set predicted_odd = 0 %}
               {% set predicted_prob = 0 %}
 
+              {# 
+                The next blocks replicate your snippet:
+                If final bet == 'H' or 'D' or 'A', 
+                we (re)check probabilities to see if we switch to '1X' or 'X2'
+              #}
               {% if predicted_bet == 'H' %}
-                {% set predicted_odd = p['B365H'] if 'B365H' in p else 0 %}
-                {% set predicted_prob = p['Prob_H'] if 'Prob_H' in p else 0 %}
+                {# If Prob_H <= 0.6 => "1X" else "H" #}
+                {% if p['Prob_H'] <= 0.6 %}
+                  {% set predicted_odd = p['1X_odds'] %}
+                  {% set predicted_bet = '1X' %}
+                  {% set predicted_prob = p['Prob_D'] + p['Prob_h'] %}
+                {% else %}
+                  {% set predicted_odd = p['B365H'] %}
+                  {% set predicted_prob = p['Prob_H'] %}
+                  {% set predicted_bet = p['HomeTeam'] %}
+                {% endif %}
+
               {% elif predicted_bet == 'D' %}
-                {% set predicted_odd = p['B365D'] if 'B365D' in p else 0 %}
-                {% set predicted_prob = p['Prob_D'] if 'Prob_D' in p else 0 %}
+                {# If (prob_h + prob_d) > (prob_d + prob_a) => '1X' else 'X2' #}
+                {% if p['Prob_H'] + p['Prob_D'] > p['Prob_D'] + p['Prob_A'] %}
+                  {% set predicted_bet = '1X' %}
+                  {% set predicted_prob = p['Prob_D'] + p['Prob_H'] %}
+                  {% set predicted_odd = p['1X_odds'] %}
+                {% else %}
+                  {% set predicted_bet = 'X2' %}
+                  {% set predicted_prob = p['Prob_D'] + p['Prob_A'] %}
+                  {% set predicted_odd = p['X2_odds'] %}
+                {% endif %}
+
               {% elif predicted_bet == 'A' %}
-                {% set predicted_odd = p['B365A'] if 'B365A' in p else 0 %}
-                {% set predicted_prob = p['Prob_A'] if 'Prob_A' in p else 0 %}
-              {% elif predicted_bet == '1X' %}
-                {% set predicted_odd = p['1X_odds'] if '1X_odds' in p else 0 %}
-                {% set predicted_prob = p['1X_prob'] if '1X_prob' in p else 0 %}
-              {% elif predicted_bet == 'X2' %}
-                {% set predicted_odd = p['X2_odds'] if 'X2_odds' in p else 0 %}
-                {% set predicted_prob = p['X2_prob'] if 'X2_prob' in p else 0 %}
+                {# If High_conf == 1 => "A" else "X2" #}
+                {% if p['High_conf'] == 1 %}
+                  {% set predicted_bet = p['AwayTeam'] %}
+                  {% set predicted_prob = p['Prob_A'] %}
+                  {% set predicted_odd = p['B365A'] %}
+                {% else %}
+                  {% set predicted_bet = 'X2' %}
+                  {% set predicted_prob = p['Prob_D'] + p['Prob_A'] %}
+                  {% set predicted_odd = p['X2_odds'] %}
+                {% endif %}
               {% endif %}
 
+              <!-- Output the final values (bet, odd, confidence, score, etc.) -->
               Prediction: 
               <span class="highlight">
                 {{ predicted_bet }} - {{ predicted_odd }}
@@ -125,24 +150,14 @@
                 {{ (predicted_prob * 100) | round(1) }}%
               </span>
               <br>
-              Actual Result:
+              Result:
               <span class="highlight">
-                {{ p['Actual_Result'] if 'Actual_Result' in p else '' }}
                 {% if 'Score' in p and p['Score'] %}
-                  ({{ p['Score'] }})
+                  {{ p['Score'] }}
                 {% endif %}
-              </span>
-              <br>
-              Correct?
-              <span 
-                class="highlight"
-                style="color: {% if p['BetCorrect'] %} #2ecc71 {% else %} #e74c3c {% endif %};"
-              >
-                {% if p['BetCorrect'] %}Yes{% else %}No{% endif %}
               </span>
             </div>
           </div>
-
         </div>
       {% endfor %}
     {% else %}
@@ -150,7 +165,7 @@
     {% endif %}
   </div>
 
-  <!-- JS for filtering by league, week, and high confidence -->
+  <!-- JavaScript for filtering by league, week, and high confidence -->
   <script>
     const leagueSelect = document.getElementById('league-select');
     const weekSelect = document.getElementById('week-select');
@@ -158,14 +173,14 @@
     const cards = document.querySelectorAll('.prediction-card');
 
     function filterResults() {
-      const selectedLeague = leagueSelect.value;  // e.g. "D1"
+      const selectedLeague = leagueSelect.value;
       const selectedWeek = weekSelect.value;
       const highConfOnly = highConfCheckbox.checked;
 
       cards.forEach(card => {
         const cardLeague = card.getAttribute('data-league');
         const cardWeek = card.getAttribute('data-week');
-        const cardHighConf = card.getAttribute('data-highconf'); // "0" or "1"
+        const cardHighConf = card.getAttribute('data-highconf');
 
         let show = true;
 
