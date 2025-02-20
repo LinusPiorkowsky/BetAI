@@ -2,7 +2,7 @@ import os
 import glob
 import pandas as pd
 from datetime import datetime, timedelta
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 
 app = Flask(__name__)
 
@@ -379,8 +379,101 @@ def predictions():
 
 @app.route("/results")
 def results():
-    """Placeholder for your results page."""
-    return render_template("results.html")
+    """
+    Display Past Results in 'card' style, with final bet logic & correctness.
+    """
+    df = load_all_result_files()
+    if df is None or df.empty:
+        return render_template("results.html", results=None, leagues=[], weeks=[])
+
+    # -------------------------------------------------------------------------
+    # APPLY YOUR get_final_bet & is_bet_correct LOGIC HERE, so we don't modify
+    # load_all_result_files() at all.
+    # -------------------------------------------------------------------------
+    # 1) Standardize 'Prediction'/'Actual_Result' if needed
+    if "Prediction" in df.columns:
+        df["Prediction"] = df["Prediction"].astype(str).str.strip().str.upper()
+    if "Actual_Result" in df.columns:
+        df["Actual_Result"] = df["Actual_Result"].astype(str).str.strip().str.upper()
+
+    # 2) Convert High_conf to numeric if it exists
+    if "High_conf" in df.columns:
+        df["High_conf"] = pd.to_numeric(df["High_conf"], errors="coerce").fillna(0).astype(int)
+    else:
+        df["High_conf"] = 0
+
+    # 3) Define your logic for final bet
+    def get_final_bet(row):
+        """
+        Same logic as provided:
+        - If 'Prediction' == 'H' => '1X' if prob_h <= 0.6 else 'H'
+        - If 'Prediction' == 'D' => '1X' if (prob_h+prob_d)>(prob_d+prob_a), else 'X2'
+        - If 'Prediction' == 'A' => 'A' if high_conf == 1, else 'X2'
+        """
+        prediction = row.get("Prediction", "")
+        prob_h = row.get("Prob_H", 0.0)
+        prob_d = row.get("Prob_D", 0.0)
+        prob_a = row.get("Prob_A", 0.0)
+        high_conf = row.get("High_conf", 0)
+
+        if prediction == "H":
+            return "1X" if prob_h <= 0.6 else "H"
+        elif prediction == "D":
+            if (prob_h + prob_d) > (prob_d + prob_a):
+                return "1X"
+            else:
+                return "X2"
+        elif prediction == "A":
+            return "A" if high_conf == 1 else "X2"
+        return None
+
+    # 4) Apply the final bet logic
+    df["FinalBet"] = df.apply(get_final_bet, axis=1)
+
+    # 5) Correctness logic
+    def is_bet_correct(actual_result, final_bet):
+        """
+        - If actual == H => correct if final_bet in [H, 1X]
+        - If actual == D => correct if final_bet in [D, 1X, X2]
+        - If actual == A => correct if final_bet in [A, X2]
+        """
+        if pd.isna(actual_result) or pd.isna(final_bet):
+            return False
+        if actual_result == "H":
+            return final_bet in ["H", "1X"]
+        elif actual_result == "D":
+            return final_bet in ["D", "1X", "X2"]
+        elif actual_result == "A":
+            return final_bet in ["A", "X2"]
+        return False
+
+    df["BetCorrect"] = df.apply(
+        lambda row: is_bet_correct(row.get("Actual_Result"), row.get("FinalBet")),
+        axis=1
+    )
+
+    # 6) Create a 'Week' column if you want to filter
+    df["Week"] = df["Date"].dt.isocalendar().week
+
+    # sort by Date and Time backwards (most recent first)
+    df = df.sort_values(by=["Date", "Time"], ascending=False)
+
+    # 7) Gather unique leagues/weeks for filtering
+    leagues = sorted(df["Div"].dropna().unique())
+    weeks = sorted(df["Week"].dropna().unique())
+
+    HomeTeam = df["HomeTeam"].tolist()
+    AwayTeam = df["AwayTeam"].tolist()
+
+    # Finally, pass the updated DataFrame to your template
+    return render_template(
+        "results.html",
+        results=df,
+        leagues=leagues,
+        weeks=weeks,
+        HomeTeam=HomeTeam,
+        AwayTeam=AwayTeam,
+    )
 
 @app.route("/informations")
 def informations():

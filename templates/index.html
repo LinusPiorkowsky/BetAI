@@ -22,18 +22,16 @@
   <!-- Page Content -->
   <header>
     <h1>Machine Learning Bets</h1>
-    <p class="date-range">Your place for machine learning-driven betting predictions.</p>
   </header>
 
   <div class="model-explanation-section">
     <div class="model-explanation-card">
       <h2>Random Forest Model</h2>
       <p>
-        Our AI-powered Random Forest model analyzes historical performance,
-        player stats, and advanced metrics to predict football match outcomes
-        with remarkable accuracy. By combining multiple decision trees, it
-        reduces overfitting and ensures robust, data-driven forecasts.
+        Our  Random Forest model leverages historical match data and advanced metrics to deliver highly accurate football match predictions. By synthesizing insights from multiple decision trees, our approach minimizes overfitting and provides robust, data-driven forecasts. 
       </p>
+      <p>Model evaluation: Accuracy 70%, Home win recall: 87%, X2 recall: 75% </p>
+      <p>More information about the model can be found in the FAQ section.</p>
     </div>
   </div>
 
@@ -48,13 +46,13 @@
         <p>
           <!-- All-time stats -->
           <strong>All Time</strong><br>
-          Correct: <strong>{{ high_conf_correct_total }}</strong>/ <strong>{{ high_conf_bets_total }}</strong><br>
+          Correct: <strong>{{ high_conf_correct_total }}</strong> out of: <strong>{{ high_conf_bets_total }}</strong><br>
           Accuracy: <strong>{{ high_conf_accuracy_total }}%</strong>
         </p>
         <p>
           <!-- Last week stats -->
           <strong>Last Week</strong><br>
-          Correct: <strong>{{ high_conf_correct_week }}</strong>/ <strong>{{ high_conf_bets_week }}</strong><br>
+          Correct: <strong>{{ high_conf_correct_week }}</strong> out of: <strong>{{ high_conf_bets_week }}</strong><br>
           Accuracy: <strong>{{ high_conf_accuracy_week }}%</strong>
         </p>
       </div>
@@ -65,13 +63,13 @@
         <p>
           <!-- All-time stats -->
           <strong>All-Time</strong><br>
-          Correct: <strong>{{ all_correct_total }}</strong>/ <strong>{{ all_bets_total }}</strong></strong><br>
+          Correct: <strong>{{ all_correct_total }}</strong> out of: <strong>{{ all_bets_total }}</strong></strong><br>
           Accuracy: <strong>{{ all_accuracy_total }}%</strong>
         </p>
         <p>
           <!-- Last week stats -->
           <strong>Last Week</strong><br>
-          Correct: <strong>{{ all_correct_week }}</strong>/ <strong>{{ all_bets_week }}</strong></strong><br>
+          Correct: <strong>{{ all_correct_week }}</strong> out of: <strong>{{ all_bets_week }}</strong></strong><br>
           Accuracy: <strong>{{ all_accuracy_week }}%</strong>
         </p>
       </div>

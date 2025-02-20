@@ -1,52 +1,147 @@
+<!-- templates/results.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ML Bets - Results</title>
-  <!-- Link to CSS -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
-  <!-- Navigation -->
+  <!-- Navbar -->
   <nav>
-    <div class="nav-left">ML Bets</div>
+    <div class="nav-left">Machine Learning Bets</div>
     <div class="nav-right">
       <a href="{{ url_for('index') }}">Home</a>
       <a href="{{ url_for('predictions') }}">Predictions</a>
       <a href="{{ url_for('results') }}">Results</a>
-      <a href="{{ url_for('informations') }}">Informations</a>
+      <a href="{{ url_for('informations') }}">FAQ</a>
     </div>
   </nav>
 
-  <!-- Page Content -->
+  <!-- Page Header -->
   <header>
-    <h2>Past Results</h2>
-    <p class="date-range">Review the accuracy of our previous predictions.</p>
+    <h2>Past Predictions</h2>
+    <p class="date-range">
+      Filter by league, week, or high confidence.
+    </p>
+
+    <!-- Filter Section -->
+    <div class="filters">
+      <!-- League Filter -->
+      <label for="league-select">League:</label>
+      <select id="league-select">
+        <option value="all" selected>All</option>
+        {% for league_code in leagues %}
+          <option value="{{ league_code }}">{{ league_code }}</option>
+        {% endfor %}
+      </select>
+
+      <!-- Week Filter -->
+      <label for="week-select">Week:</label>
+      <select id="week-select">
+        <option value="all" selected>All</option>
+        {% for w in weeks %}
+          <option value="{{ w }}">{{ w }}</option>
+        {% endfor %}
+      </select>
+
+      <!-- High Confidence Filter -->
+      <label for="high-conf">
+        <input type="checkbox" id="high-conf">
+        High Confidence Only
+      </label>
+    </div>
   </header>
 
-  <div class="cards-container">
-    <!-- Example result card -->
-    <div class="prediction-card">
-      <div class="card-top">
-        <span>Saturday, Feb 17</span>
-      </div>
-      <div class="card-middle">
-        <div class="matchup">
-          <span>Team A vs Team B</span>
-        </div>
-        <div class="prediction-info">
-          Predicted Winner: <span class="highlight">Team A</span>
-        </div>
-      </div>
-      <div class="card-bottom">
-        <span>Actual Result: Team A 3 - 1 Team B</span>
-        <br />
-        <span>Prediction Accuracy: 85%</span>
-      </div>
-    </div>
+  <!-- Cards Container -->
+  <div class="cards-container" id="results-container">
+    {% if results is not none and results.shape[0] > 0 %}
+      {% for idx, row in results.iterrows() %}
+        {% set correctness_class = 'correct' if row['BetCorrect'] else 'wrong' %}
+        <div 
+          class="prediction-card result-card {{ correctness_class }}"
+          data-league="{{ row['Div'] }}"
+          data-week="{{ row['Week'] }}"
+          data-highconf="{{ row['High_conf'] }}"
+        >
+          <!-- Top Row (Date info) -->
+          <div class="card-top">
+            <span>
+              {% if 'Weekday' in row and row['Weekday'] %}{{ row['Weekday'] }}{% endif %}
+              {% if row['Date'] %} {{ row['Date'].strftime('%d.%m.%Y') }}{% endif %}
+              {% if 'Time' in row and row['Time'] %} {{ row['Time'] }}{% endif %}
+            </span>
+          </div>
 
-    <!-- Add more results cards as needed -->
+          <!-- Middle: Home vs Away -->
+          <div class="card-middle">
+            <div class="matchup">
+              {{ row['HomeTeam'] }} vs. {{ row['AwayTeam'] }}
+            </div>
+            <div class="prediction-info">
+              <p>
+                <strong>Prediction:</strong> {{ row.get('FinalBet','') }}
+                <br/>
+                <strong>Result:</strong> {{ row.get('Actual_Result','') }}
+                {% if 'Score' in row and row['Score'] %} {{ row['Score'] }}{% endif %}
+                <br/>
+              </p>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p>No Results Found.</p>
+    {% endif %}
   </div>
+
+  <!-- JS for filter -->
+  <script>
+    const leagueSelect = document.getElementById('league-select');
+    const weekSelect = document.getElementById('week-select');
+    const highConfCheckbox = document.getElementById('high-conf');
+    const cards = document.querySelectorAll('.result-card');
+
+    function filterResults() {
+      const selLeague = leagueSelect.value;
+      const selWeek = weekSelect.value;
+      const highConfOnly = highConfCheckbox.checked;
+
+      cards.forEach(card => {
+        const cardLeague = card.getAttribute('data-league');
+        const cardWeek = card.getAttribute('data-week');
+        const cardHighConf = card.getAttribute('data-highconf');
+
+        let show = true;
+
+        // Filter by league
+        if (selLeague !== 'all' && cardLeague !== selLeague) {
+          show = false;
+        }
+
+        // Filter by week
+        if (selWeek !== 'all' && cardWeek !== selWeek) {
+          show = false;
+        }
+
+        // Filter by high confidence
+        if (highConfOnly && cardHighConf !== '1') {
+          show = false;
+        }
+
+        card.style.display = show ? 'block' : 'none';
+      });
+    }
+
+    highConfCheckbox.checked = true;
+    
+    leagueSelect.addEventListener('change', filterResults);
+    weekSelect.addEventListener('change', filterResults);
+    highConfCheckbox.addEventListener('change', filterResults);
+
+    // Initial filter
+    filterResults();
+  </script>
 </body>
 </html>

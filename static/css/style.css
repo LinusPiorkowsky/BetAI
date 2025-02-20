@@ -50,6 +50,7 @@
     font-weight: 600;
     font-size: 1.2rem;
     color: var(--accent-color);
+    text-align: center;
     /* no margin-bottom by default, but you can add if you want more space */
   }
   
@@ -65,6 +66,8 @@
     padding-top: var(--spacing);
     border-top: 1px solid var(--border-color);
     flex-wrap: wrap; /* if links get too wide, they can wrap */
+    justify-content: center;
+    text-align: center;
   }
   
   /* Individual nav links */
@@ -378,6 +381,13 @@
   font-size: 1rem;
   line-height: 1.4;
   color: var(--primary-text);
+}
+.result-card.correct {
+  border: 2px solid #2ecc71; /* green border */
+}
+
+.result-card.wrong {
+  border: 2px solid #e74c3c; /* red border */
 }
 
   

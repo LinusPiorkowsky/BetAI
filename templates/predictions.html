@@ -15,7 +15,7 @@
       <a href="{{ url_for('index') }}">Home</a>
       <a href="{{ url_for('predictions') }}">Predictions</a>
       <a href="{{ url_for('results') }}">Results</a>
-      <a href="{{ url_for('informations') }}">Informations</a>
+      <a href="{{ url_for('informations') }}">FAQ</a>
     </div>
   </nav>
 
@@ -44,8 +44,8 @@
 
       <label for="high-conf">
         <input type="checkbox" id="high-conf">
-        High Confidence 
-        <span class="tooltip" data-tooltip="High Confidence means that the prediction has a high probability of being correct.">?</span>
+        High Confidence Predictions
+        {#<span class="tooltip" data-tooltip="High Confidence means that the prediction has a high probability of being correct.">?</span> #}
       </label>
     </div>
   </header>
