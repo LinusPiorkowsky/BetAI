@@ -1,216 +1,280 @@
-:root {
-  /* Dark theme colors */
-  --primary-bg: #1c1c1e;
-  --card-bg: #2c2c2e;
-  --primary-text: #ffffff;
-  --secondary-text: #a1a1a6;
-  --accent-color: #0a84ff;
-  --border-color: #3a3a3c;
-
-  /* Sizing & style */
-  --card-radius: 10px;
-  --box-shadow-light: 0 2px 6px rgba(0, 0, 0, 0.4);
-  --spacing: 16px;
-  --big-spacing: 24px;
-
-  /* Slightly larger base font for better mobile readability */
-  font-size: 17px;
-}
-
-body {
-  margin: 0;
-  padding: 0;
-  background-color: var(--primary-bg);
-  color: var(--primary-text);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-               Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-}
-
-/* NAVIGATION */
-nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background-color: var(--card-bg);
-  padding: var(--spacing);
-  box-shadow: var(--box-shadow-light);
-  border-bottom: 1px solid var(--border-color);
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-.nav-left {
-  font-weight: 600;
-  font-size: 1.1rem;
-  color: var(--accent-color);
-}
-.nav-right a {
-  margin-left: var(--spacing);
-  text-decoration: none;
-  color: var(--primary-text);
-  font-size: 1rem;
-}
-.nav-right a:hover {
-  color: var(--accent-color);
-}
-
-/* HEADER & FILTERS */
-header {
-  padding: var(--spacing) var(--big-spacing);
-  text-align: center;
-}
-header h2 {
-  margin-bottom: 0.5rem;
-  font-size: 1.3rem;
-}
-.date-range {
-  font-size: 1rem;
-  color: var(--secondary-text);
-}
-.filters {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin-top: var(--spacing);
-}
-.filters select,
-.filters label {
-  font-size: 1rem;
-}
-.filters select {
-  background-color: var(--card-bg);
-  color: var(--primary-text);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  padding: 5px 10px;
-}
-.filters input[type="checkbox"] {
-  accent-color: var(--accent-color);
-}
-.filters label {
-  user-select: none;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-}
-
-/* MAIN CONTAINER FOR CARDS */
-.cards-container {
-  display: flex;
-  flex-direction: column;
-  gap: var(--big-spacing);
-  max-width: 600px; /* limit width so it’s comfortable on desktops, too */
-  margin: 0 auto;
-  padding: var(--spacing);
-}
-
-/* PREDICTION CARD */
-.prediction-card {
-  background-color: var(--card-bg);
-  border-radius: var(--card-radius);
-  box-shadow: var(--box-shadow-light);
-  padding: var(--big-spacing);
-  border: 1px solid var(--border-color);
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing);
-}
-
-/* CARD TOP: date, weekday, time (vertically stacked by default) */
-.card-top {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  color: var(--accent-color);
-  font-size: 1rem;
-  margin-bottom: 6px;
-}
-
-/* CARD MIDDLE: matchup, predicted outcome, probability, odds */
-.card-middle {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.card-middle .matchup {
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin-bottom: 0.3rem;
-}
-.prediction-info {
-  font-size: 1rem;
-  font-weight: 400;
-  line-height: 1.4;
-}
-.prediction-info .highlight {
-  color: var(--accent-color);
-  font-weight: 600;
-}
-
-/* CARD BOTTOM: all odds */
-.card-bottom {
-  color: var(--secondary-text);
-  font-size: 0.95rem;
-  line-height: 1.4;
-}
-
-/* RESPONSIVE TWEAKS */
-@media (max-width: 400px) {
-  :root {
-    font-size: 16px; /* scale down a bit on very small devices */
+/* =========================================
+   1) ROOT VARIABLES & MOBILE-FIRST BASICS
+   ========================================= */
+   :root {
+    --primary-bg: #1c1c1e;
+    --card-bg: #2c2c2e;
+    --primary-text: #ffffff;
+    --secondary-text: #a1a1a6;
+    --accent-color: #0a84ff;
+    --border-color: #3a3a3c;
+  
+    --card-radius: 10px;
+    --box-shadow-light: 0 2px 6px rgba(0, 0, 0, 0.4);
+  
+    --spacing: 16px;
+    --big-spacing: 24px;
+  
+    font-size: 16px; /* Good default for mobile */
   }
+  
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--primary-bg);
+    color: var(--primary-text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+                 Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden; /* Prevent horizontal scroll on mobile */
+  }
+  
+  /* =========================================
+     2) NAVIGATION (Mobile-First)
+     ========================================= */
+  nav {
+    display: flex;
+    flex-direction: column; /* stack nav-left and nav-right on small screens */
+    background-color: var(--card-bg);
+    padding: var(--spacing);
+    box-shadow: var(--box-shadow-light);
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  
+  .nav-left {
+    font-weight: 600;
+    font-size: 1.2rem;
+    color: var(--accent-color);
+    /* no margin-bottom by default, but you can add if you want more space */
+  }
+  
+  /* 
+     .nav-right is displayed as a row, 
+     but visually separated from .nav-left on smaller screens 
+     by a top border & extra padding.
+  */
+  .nav-right {
+    display: flex;
+    gap: 1.5rem; /* space between links */
+    margin-top: var(--spacing);
+    padding-top: var(--spacing);
+    border-top: 1px solid var(--border-color);
+    flex-wrap: wrap; /* if links get too wide, they can wrap */
+  }
+  
+  /* Individual nav links */
   .nav-right a {
-    font-size: 0.9rem;
+    text-decoration: none;
+    color: var(--primary-text);
+    font-size: 1rem;
+    transition: color 0.2s ease-in-out;
   }
-  .card-middle .matchup {
-    font-size: 1.1rem;
+  
+  .nav-right a:hover {
+    color: var(--accent-color);
   }
-}
-
-@media (min-width: 900px) {
-  :root {
-    font-size: 18px; /* scale up a bit on larger desktops */
+  
+  /* 
+     At >=600px, switch to a typical left-right layout 
+     (nav-left on the left, nav-right on the right).
+  */
+  @media (min-width: 600px) {
+    nav {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+  
+    /* Remove the border & extra padding between .nav-left and .nav-right */
+    .nav-right {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: none;
+    }
   }
+  
+  /* =========================================
+     3) HEADER & FILTERS
+     ========================================= */
+  header {
+    text-align: center;
+    padding: var(--spacing) var(--spacing);
+  }
+  
   header h2 {
+    margin-bottom: 0.5rem;
     font-size: 1.4rem;
   }
+  
+  .date-range {
+    font-size: 1rem;
+    color: var(--secondary-text);
+  }
+  
+  .filters {
+    margin-top: var(--spacing);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  
+  .filters select,
+  .filters label {
+    font-size: 1rem;
+  }
+  
+  .filters select {
+    background-color: var(--card-bg);
+    color: var(--primary-text);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 6px 12px;
+  }
+  
+  .filters select:hover {
+    border-color: var(--accent-color);
+  }
+  
+  .filters input[type="checkbox"] {
+    accent-color: var(--accent-color);
+  }
+  
+  .filters label {
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+  }
+  
+  /* =========================================
+     4) MAIN CONTENT / CARD CONTAINER
+     ========================================= */
+  .cards-container {
+    width: 90%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--big-spacing);
+    padding-bottom: var(--big-spacing);
+  }
+  
+  .prediction-card {
+    background-color: var(--card-bg);
+    border-radius: var(--card-radius);
+    box-shadow: var(--box-shadow-light);
+    padding: var(--big-spacing);
+    border: 1px solid var(--border-color);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing);
+  }
+  
+  .card-top {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    color: var(--accent-color);
+    font-size: 1rem;
+    margin-bottom: 6px;
+  }
+  
+  .card-middle {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
   .card-middle .matchup {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
   }
   .prediction-info {
-    font-size: 1.05rem;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.4;
   }
-}
-
-.tooltip {
-  position: relative;
-  cursor: pointer;
-  border-bottom: 1px dotted black;
-}
-
-.tooltip::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  left: 50%;
-  bottom: 125%;
-  transform: translateX(-50%);
-  background-color: #333;
-  color: #fff;
-  padding: 5px;
-  border-radius: 5px;
-  white-space: nowrap;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.3s;
-}
-
-.tooltip:hover::after {
-  opacity: 1;
-  visibility: visible;
-}
+  .prediction-info .highlight {
+    color: var(--accent-color);
+    font-weight: 600;
+  }
+  .card-bottom {
+    color: var(--secondary-text);
+    font-size: 0.95rem;
+    line-height: 1.4;
+  }
+  
+  /* =========================================
+     5) TOOLTIP (OPTIONAL)
+     ========================================= */
+  .tooltip {
+    position: relative;
+    cursor: pointer;
+    border-bottom: 1px dotted var(--secondary-text);
+  }
+  .tooltip::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 50%;
+    bottom: 125%;
+    transform: translateX(-50%);
+    background-color: var(--card-bg);
+    color: var(--primary-text);
+    border: 1px solid var(--border-color);
+    padding: 6px 8px;
+    border-radius: 5px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+    pointer-events: none;
+    z-index: 999;
+  }
+  .tooltip:hover::after {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  /* =========================================
+     6) RESPONSIVE SCALING
+     ========================================= */
+  @media (min-width: 600px) {
+    :root {
+      font-size: 17px; 
+    }
+  
+    header h2 {
+      font-size: 1.5rem;
+    }
+  }
+  
+  @media (min-width: 900px) {
+    :root {
+      font-size: 18px; 
+    }
+  
+    .cards-container {
+      max-width: 700px;
+    }
+  
+    header h2 {
+      font-size: 1.6rem;
+    }
+  
+    .card-middle .matchup {
+      font-size: 1.3rem;
+    }
+  
+    .prediction-info {
+      font-size: 1.1rem;
+    }
+  }
+  

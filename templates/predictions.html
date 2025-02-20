@@ -5,6 +5,7 @@
   <title>ML Bets - Predictions</title>
   <!-- Link to your CSS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
   <!-- Navbar -->
@@ -20,7 +21,7 @@
 
   <!-- Page header -->
   <header>
-    <h1>Predictions</h1>
+    <h1>Upcomming Predictions</h1>
     <p class="date-range">
       {% if date_range %}
         {{ date_range }}
