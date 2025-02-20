@@ -277,4 +277,107 @@
       font-size: 1.1rem;
     }
   }
+/* ================================
+   INDEX Section
+   ================================ */
+
+/* A container to hold the explanation card or text. */
+.model-explanation-section {
+  width: 90%;
+  max-width: 700px; /* clamp width on larger screens */
+  margin: 0 auto;
+  margin-top: var(--big-spacing);
+  display: flex;
+  flex-direction: column;
+  gap: var(--big-spacing);
+}
+
+/* An explanation card, styled similarly to .prediction-card */
+.model-explanation-card {
+  background-color: var(--card-bg);
+  border-radius: var(--card-radius);
+  box-shadow: var(--box-shadow-light);
+  padding: var(--big-spacing);
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing);
+}
+
+/* Optional heading inside the explanation card */
+.model-explanation-card h2 {
+  margin: 0;
+  color: var(--accent-color);
+  font-size: 1.2rem;
+}
+
+/* The paragraph or text inside the explanation card */
+.model-explanation-card p {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--primary-text);
+}
+
+/* ================================
+   STATS SECTION
+   ================================ */
+
+/* A container for stats (like 'High Confidence', 'All Predictions', etc.) */
+.stats-section {
+  width: 90%;
+  max-width: 700px; /* clamp width on larger screens */
+  margin: 0 auto;
+  margin-top: var(--big-spacing);
+  display: flex;
+  flex-direction: column;
+  gap: var(--big-spacing);
+}
+
+/* A heading for the overall stats section */
+.stats-section h2 {
+  text-align: center;
+  font-size: 1.4rem;
+  margin: 0;
+  color: var(--accent-color);
+}
+
+/* A flexible container to hold multiple stat cards side by side or stack if narrow. */
+.stats-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--big-spacing);
+  justify-content: center; /* center them horizontally if narrower than 2 columns */
+}
+
+/* Individual stats card, styled similarly to .prediction-card */
+.stats-card {
+  background-color: var(--card-bg);
+  border-radius: var(--card-radius);
+  box-shadow: var(--box-shadow-light);
+  padding: var(--big-spacing);
+  border: 1px solid var(--border-color);
+  min-width: 250px; /* smallish min width so it can stack if screen is narrower */
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing);
+  text-align: center;
+}
+
+/* Heading inside each stats card (like "High Confidence Predictions") */
+.stats-card h3 {
+  margin: 0;
+  color: var(--accent-color);
+  font-size: 1.1rem;
+}
+
+/* Stats text inside each card */
+.stats-card p {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.4;
+  color: var(--primary-text);
+}
+
   
