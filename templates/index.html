@@ -1,4 +1,4 @@
-<!-- index.html -->
+<!-- templates/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -37,25 +37,42 @@
     </div>
   </div>
 
+  <!-- Performance Stats -->
   <div class="stats-section">
     <h2>Current Performance Stats</h2>
     <div class="stats-grid">
-      <!-- High Confidence Predictions Card -->
+      
+      <!-- High Confidence Card -->
       <div class="stats-card">
-        <h3>High Confidence</h3>
+        <h3>High Confidence Predictions</h3>
         <p>
-          Bets/Outcomes: <strong>{{ high_conf_bets }}</strong><br>
-          Accuracy: <strong>{{ high_conf_accuracy }}%</strong><br>
-          (Last Week)
+          <!-- All-time stats -->
+          <strong>All Time</strong><br>
+          Correct: <strong>{{ high_conf_correct_total }}</strong>/ <strong>{{ high_conf_bets_total }}</strong><br>
+          Accuracy: <strong>{{ high_conf_accuracy_total }}%</strong>
+        </p>
+        <p>
+          <!-- Last week stats -->
+          <strong>Last Week</strong><br>
+          Correct: <strong>{{ high_conf_correct_week }}</strong>/ <strong>{{ high_conf_bets_week }}</strong><br>
+          Accuracy: <strong>{{ high_conf_accuracy_week }}%</strong>
         </p>
       </div>
-      <!-- All Predictions Card -->
+      
+      <!-- All Bets Card -->
       <div class="stats-card">
         <h3>All Predictions</h3>
         <p>
-          Bets/Outcomes: <strong>{{ all_bets }}</strong><br>
-          Accuracy: <strong>{{ all_accuracy }}%</strong><br>
-          (Last Week)
+          <!-- All-time stats -->
+          <strong>All-Time</strong><br>
+          Correct: <strong>{{ all_correct_total }}</strong>/ <strong>{{ all_bets_total }}</strong></strong><br>
+          Accuracy: <strong>{{ all_accuracy_total }}%</strong>
+        </p>
+        <p>
+          <!-- Last week stats -->
+          <strong>Last Week</strong><br>
+          Correct: <strong>{{ all_correct_week }}</strong>/ <strong>{{ all_bets_week }}</strong></strong><br>
+          Accuracy: <strong>{{ all_accuracy_week }}%</strong>
         </p>
       </div>
     </div>
