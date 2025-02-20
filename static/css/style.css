@@ -12,6 +12,7 @@
     --card-radius: 10px;
     --box-shadow-light: 0 2px 6px rgba(0, 0, 0, 0.4);
   
+    --small_spacing: 10px;
     --spacing: 16px;
     --big-spacing: 24px;
   
@@ -173,7 +174,7 @@
     background-color: var(--card-bg);
     border-radius: var(--card-radius);
     box-shadow: var(--box-shadow-light);
-    padding: var(--big-spacing);
+    padding: var(--small_spacing); /* Reduced padding to make the card smaller */
     border: 1px solid var(--border-color);
     text-align: center;
     display: flex;
@@ -389,5 +390,10 @@
 .result-card.wrong {
   border: 2px solid #e74c3c; /* red border */
 }
-
-  
+/* If BetCorrect is True => green border, else => red border */
+.prediction-card.correct {
+  border: 2px solid #2ecc71; /* green */
+}
+.prediction-card.wrong {
+  border: 2px solid #e74c3c; /* red */
+}

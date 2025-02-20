@@ -462,17 +462,12 @@ def results():
     leagues = sorted(df["Div"].dropna().unique())
     weeks = sorted(df["Week"].dropna().unique())
 
-    HomeTeam = df["HomeTeam"].tolist()
-    AwayTeam = df["AwayTeam"].tolist()
-
     # Finally, pass the updated DataFrame to your template
     return render_template(
         "results.html",
         results=df,
         leagues=leagues,
         weeks=weeks,
-        HomeTeam=HomeTeam,
-        AwayTeam=AwayTeam,
     )
 
 @app.route("/informations")
