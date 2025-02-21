@@ -470,7 +470,9 @@ def results():
 
 @app.route("/informations")
 def informations():
-    """Placeholder for your informations page."""
+    """
+    FAQ / Informations page about the ML models, data sources, etc.
+    """
     return render_template("informations.html")
 
 if __name__ == "__main__":

@@ -2,76 +2,209 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ML Bets - Informations</title>
-  <!-- Link to CSS -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <!-- Main CSS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+
+  <!-- Optional Inline Overrides for FAQ accordion -->
+  <style>
+    /* Container for the FAQ cards */
+    .faq-container {
+      width: 90%;
+      max-width: 700px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      padding-bottom: 2rem; /* space at bottom */
+    }
+
+    /* A smaller card style specifically for FAQ items */
+    .faq-card {
+      background-color: var(--card-bg);
+      border-radius: var(--card-radius);
+      box-shadow: var(--box-shadow-light);
+      border: 1px solid var(--border-color);
+      padding: 1rem;
+      transition: all 0.3s ease;
+      cursor: pointer; /* indicates click to toggle */
+    }
+
+    /* The question header within each FAQ card */
+    .faq-question {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--accent-color);
+    }
+
+    /* The answer is hidden by default */
+    .faq-answer {
+      margin-top: 0.75rem;
+      display: none;
+      font-size: 0.95rem;
+      line-height: 1.4;
+    }
+
+    /* When the card is "open," display the answer */
+    .faq-card.open .faq-answer {
+      display: block;
+    }
+
+    /*
+     A simple "accordion arrow" or indicator. 
+     You can replace content with 'plus/minus' or any icon you like.
+    */
+    .accordion-indicator::before {
+      content: "+";
+      display: inline-block;
+      margin-right: 0.5rem;
+      transition: transform 0.3s ease;
+    }
+
+    /* Rotate indicator if the card is open */
+    .faq-card.open .accordion-indicator::before {
+      transform: rotate(45deg);
+    }
+
+    /* 
+     Optional: Make the question text stand out on hover. 
+     This is purely aesthetic.
+    */
+    .faq-card:hover .faq-question {
+      color: var(--accent-color);
+      opacity: 0.9;
+    }
+
+    /* 
+     If you want to ensure the entire card is clickable, 
+     we rely on JS toggling the `.open` class. 
+     No anchor tags needed.
+    */
+  </style>
 </head>
 <body>
   <!-- Navigation -->
   <nav>
-    <div class="nav-left">ML Bets</div>
+    <div class="nav-left">Machine Learning Bets</div>
     <div class="nav-right">
       <a href="{{ url_for('index') }}">Home</a>
       <a href="{{ url_for('predictions') }}">Predictions</a>
       <a href="{{ url_for('results') }}">Results</a>
-      <a href="{{ url_for('informations') }}">Informations</a>
+      <a href="{{ url_for('informations') }}">FAQ</a>
     </div>
   </nav>
 
-  <!-- Page Content -->
+  <!-- Header -->
   <header>
-    <h2>Information Center</h2>
+    <h2>Informations</h2>
     <p class="date-range">
       Learn more about our ML models, data sources, and methodology.
     </p>
   </header>
 
-  <div class="cards-container">
-    <div class="prediction-card">
-      <div class="card-top">
-        <span>About Our Models</span>
+  <!-- FAQ Container -->
+  <div class="faq-container">
+
+    <!-- FAQ Card 1 -->
+    <div class="faq-card">
+      <div class="faq-question">
+        <span>How do the ML models work?</span>
+        <!-- Simple indicator (plus sign) -->
+        <span class="accordion-indicator"></span>
       </div>
-      <div class="card-middle">
-        <p>
-          We use state-of-the-art machine learning algorithms to analyze
-          historical match data, player stats, and other relevant factors.
-        </p>
-      </div>
-      <div class="card-bottom">
-        <p>Accuracy is continuously monitored and improved over time.</p>
+      <div class="faq-answer">
+        Machine learning models analyze historical match data, extracting key features to identify patterns and trends. By using a Random Forest algorithm, they combine multiple decision trees to create robust and balanced predictions. This approach minimizes overfitting, adapts to new data, and enhances accuracy, making forecasts more reliable for football matches.
       </div>
     </div>
 
-    <div class="prediction-card">
-      <div class="card-top">
-        <span>Data Sources</span>
+    <!-- FAQ Card 2 -->
+    <div class="faq-card">
+      <div class="faq-question">
+        <span>What makes a prediction high confidence?</span>
+        <span class="accordion-indicator"></span>
       </div>
-      <div class="card-middle">
-        <p>
-          We gather data from trusted sports APIs, official league
-          statistics, and historical archives for training our models.
-        </p>
+      <div class="faq-answer">
+        A prediction is considered high confidence when the model identifies strong historical patterns and consistent data trends. Factors like a dominant home team, clear statistical advantages, or strong betting odds alignment contribute to higher confidence levels. Conversely, unpredictable matches with evenly matched teams or volatile performances result in lower confidence scores.      </div>
+    </div>
+
+    <!-- FAQ Card 2 -->
+    <div class="faq-card">
+      <div class="faq-question">
+        <span>Why only the top 5 leagues?</span>
+        <span class="accordion-indicator"></span>
       </div>
-      <div class="card-bottom">
-        <p>Ensuring high data quality is a critical part of our workflow.</p>
+      <div class="faq-answer">
+        Predicting lower leagues or mixed competitions like the Champions League is significantly more challenging due to inconsistent data quality, varying team performances, and unpredictable match dynamics. The top 5 leagues offer more stable patterns, reliable statistics, and better historical data, leading to more accurate and consistent predictions.
       </div>
     </div>
 
-    <div class="prediction-card">
-      <div class="card-top">
-        <span>Methodology</span>
+    <!-- FAQ Card 3 -->
+    <div class="faq-card">
+      <div class="faq-question">
+        <span>How often are predictions updated?</span>
+        <span class="accordion-indicator"></span>
       </div>
-      <div class="card-middle">
-        <p>
-          Our ensemble approach combines multiple prediction models to
-          achieve balanced and robust forecasts.
-        </p>
-      </div>
-      <div class="card-bottom">
-        <p>Learn more about our ensemble strategies by contacting us!</p>
+      <div class="faq-answer">
+        Weekend match predictions are released every Friday at 6 PM, while midweek game predictions go live on Tuesday at 2 PM. This ensures the latest data is incorporated, providing the most accurate forecasts before each matchday.
       </div>
     </div>
+
+    <!-- FAQ Card 4 -->
+    <div class="faq-card">
+      <div class="faq-question">
+        <span>What is your accuracy rate?</span>
+        <span class="accordion-indicator"></span>
+      </div>
+      <div class="faq-answer">
+        The machine learning model achieves 70% overall accuracy in predicting match outcomes. It performs exceptionally well in specific markets, with a 87% recall for Home Wins and 75% recall for X2 (Draw or Away Win). Continuous evaluation using precision, recall, and F1-score ensures our predictions remain reliable and data-driven. Check our results page for more details on performance metrics.
+      </div>
+    </div>
+
+    <!-- FAQ Card 5 -->
+    <div class="faq-card">
+      <div class="faq-question">
+        <span>Can I use your predictions for betting?</span>
+        <span class="accordion-indicator"></span>
+      </div>
+      <div class="faq-answer">
+        Our predictions are designed to provide data-driven insights for football outcomes. While they can help inform betting decisions, no prediction is guaranteed. Always bet responsibly and consider multiple factors before placing a wager.      </div>
+    </div>
+
+    <!-- FAQ Card 6 -->
+    <div class="faq-card">
+      <div class="faq-question">
+        <span>What data does the model use for predictions?</span>
+        <span class="accordion-indicator"></span>
+      </div>
+      <div class="faq-answer">
+        The model analyzes historical match data, including team performance, goal statistics, shots, corners, and betting odds. By extracting key features, it identifies trends that influence match outcomes.    </div>
+    </div>
+
+    <!-- FAQ Card 6 -->
+    <div class="faq-card">
+      <div class="faq-question">
+        <span>Why do some predictions have higher confidence than others?</span>
+        <span class="accordion-indicator"></span>
+      </div>
+      <div class="faq-answer">
+        Prediction confidence varies based on data consistency and match conditions. Stronger trends in historical data lead to higher confidence, while unpredictable matches—like evenly matched teams or key player absences—result in lower confidence scores.    </div>
   </div>
+
+  <!-- JS: Toggle the "open" class on each clicked card -->
+  <script>
+    const faqCards = document.querySelectorAll('.faq-card');
+
+    faqCards.forEach(card => {
+      card.addEventListener('click', () => {
+        // Toggle the "open" class on the clicked card
+        card.classList.toggle('open');
+      });
+    });
+  </script>
 </body>
 </html>
