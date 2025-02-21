@@ -62,7 +62,7 @@
         {% if p['Prediction'] == 'H' %}
           {% set predicted_team = p['HomeTeam'] %}
           {% set predicted_prob = p['Prob_H'] %}
-          {% if p['Prob_H'] <= 0,6 %}
+          {% if p['Prob_H'] <= 0.7 %}
             {% set predicted_odd = p['1X_odds'] %}
             {% set predicted_bet = '1X' %}
             {% set predicted_prob2 = p['1X_prob'] %}

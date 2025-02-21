@@ -188,7 +188,7 @@ def index():
 
         if prediction == "H":
             # If Prob_H <= 0.6 => '1X'; else 'H'
-            return "1X" if prob_h <= 0.6 else "H"
+            return "1X" if prob_h <= 0.7 else "H"
 
         elif prediction == "D":
             # If Prob_H + Prob_D > Prob_D + Prob_A => '1X' else 'X2'
