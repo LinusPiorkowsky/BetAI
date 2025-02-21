@@ -309,17 +309,17 @@ best_rf_model = grid_search.best_estimator_
 
 # Model Evaluation
 y_pred = best_rf_model.predict(X_test_scaled)
-print(f"Model Accuracy: {accuracy_score(y_test, y_pred)}")
+# print(f"Model Accuracy: {accuracy_score(y_test, y_pred)}")
 
 # Generate the confusion matrix
 conf_matrix = confusion_matrix(y_test, y_pred)
-print("Confusion Matrix:")
-print(conf_matrix)
+# print("Confusion Matrix:")
+# print(conf_matrix)
 
 # Generate a classification report
 class_report = classification_report(y_test, y_pred, target_names=['Home Win', 'Draw', 'Away Win'])
-print("Classification Report:")
-print(class_report)
+# print("Classification Report:")
+# print(class_report)
 
 # Fit the model on the entire historical data
 scaler = StandardScaler()
@@ -391,19 +391,6 @@ feature_importance_df = pd.DataFrame({
 })
 # Sortieren Sie die Merkmale nach ihrer Wichtigkeit
 feature_importance_df = feature_importance_df.sort_values(by='Importance', ascending=False)
-# print(feature_importance_df)
-
-# Display the predictions
-print("Predictions:")
-predictions = predictions_df[['Div', 'Date', 'Weekday', 'Time', 'HomeTeam', 'AwayTeam', 'Prediction',
-                            'B365H', 'B365D', 'B365A', 'Prob_H', 'Prob_D', 'Prob_A', 'High_conf']]
-print(predictions[predictions['High_conf'] == 1])
-
-# Display the double chance predictions
-print("\nDouble Chance Predictions:")
-predictions_dc = predictions_df[['Div', 'Date', 'Weekday', 'Time', 'HomeTeam', 'AwayTeam',
-                               'double_chance', '1X_prob', 'X2_prob', '1X_odds', 'X2_odds', 'High_conf', 'High_conf_dc']]
-print(predictions_dc[(predictions_dc['High_conf_dc'] == 1) & (predictions_dc['High_conf'] == 1)])
 
 # Create the predictions directory if it doesn't exist
 os.makedirs('predictions', exist_ok=True)

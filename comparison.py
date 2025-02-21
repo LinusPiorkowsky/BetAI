@@ -144,12 +144,12 @@ comparison_results = compare_predictions_with_results(
 
 # Filter for high confidence predictions
 high_confidence_results = comparison_results[comparison_results['High_conf'] == 1]
-print("\nHigh Confidence Predictions:")
-print(high_confidence_results[['HomeTeam', 'AwayTeam', 'Prediction', 'Actual_Result', 'Score']])
+# print("\nHigh Confidence Predictions:")
+# print(high_confidence_results[['HomeTeam', 'AwayTeam', 'Prediction', 'Actual_Result', 'Score']])
 
 # Print summary statistics for high confidence predictions
-print("\nHigh Confidence Prediction Results Summary:")
-print(f"Total high confidence matches evaluated: {len(high_confidence_results)}")
-print(f"Correct high confidence predictions: {high_confidence_results['Prediction_Correct'].sum()}")
-print(f"High confidence prediction accuracy: {(high_confidence_results['Prediction_Correct'].mean() * 100):.2f}%")
-print(f"High confidence Double Chance X2 accuracy: {(high_confidence_results['DC_X2_Correct'].mean() * 100):.2f}%")
+# print("\nHigh Confidence Prediction Results Summary:")
+# print(f"Total high confidence matches evaluated: {len(high_confidence_results)}")
+# print(f"Correct high confidence predictions: {high_confidence_results['Prediction_Correct'].sum()}")
+# print(f"High confidence prediction accuracy: {(high_confidence_results['Prediction_Correct'].mean() * 100):.2f}%")
+# print(f"High confidence Double Chance X2 accuracy: {(high_confidence_results['DC_X2_Correct'].mean() * 100):.2f}%")

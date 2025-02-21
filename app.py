@@ -3,8 +3,66 @@ import glob
 import pandas as pd
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request
+from apscheduler.schedulers.background import BackgroundScheduler
+import subprocess, atexit
 
 app = Flask(__name__)
+
+def run_downloads():
+    print(f"[{datetime.now()}] Running downloads.py...")
+    # Option A) Call via subprocess:
+    subprocess.run(["python", "downloads.py"])
+    # Option B) If you prefer to import & run a function inside downloads.py:
+    # import downloads
+    # downloads.main()  # or whatever function runs the main logic
+
+def run_prediction2():
+    print(f"[{datetime.now()}] Running prediction2.py...")
+    subprocess.run(["python", "prediction2.py"])
+
+def run_comparison():
+    print(f"[{datetime.now()}] Running comparison.py...")
+    subprocess.run(["python", "comparison.py"])
+
+
+# ========== Create a background scheduler ========== #
+scheduler = BackgroundScheduler()
+
+# ========== Add jobs with cron triggers ========== #
+# 1) Fridays at 17:00 => downloads
+scheduler.add_job(run_downloads,
+                  trigger='cron', 
+                  day_of_week='fri',
+                  hour=17,
+                  minute=0)
+
+# 2) Fridays at 17:30 => prediction2
+scheduler.add_job(run_prediction2,
+                  trigger='cron',
+                  day_of_week='fri',
+                  hour=17,
+                  minute=30)
+
+# 3) Tuesdays at 13:00 => downloads
+scheduler.add_job(run_downloads,
+                  trigger='cron',
+                  day_of_week='tue',
+                  hour=13,
+                  minute=0)
+
+# 4) Tuesdays at 13:30 => comparison
+scheduler.add_job(run_comparison,
+                  trigger='cron',
+                  day_of_week='tue',
+                  hour=13,
+                  minute=30)
+
+# Start the scheduler
+scheduler.start()
+
+# Ensure scheduler shuts down cleanly on exit
+atexit.register(lambda: scheduler.shutdown())
+
 
 # Directory where your CSV prediction files are stored
 PREDICTION_DIR = "predictions"
@@ -476,5 +534,4 @@ def informations():
     return render_template("informations.html")
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5000)
-    load_all_result_files()
+    app.run(debug=True)
