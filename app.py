@@ -83,9 +83,6 @@ def get_latest_prediction():
     df["HomeTeam"] = df["HomeTeam"].apply(lambda x: ' '.join([word.capitalize() for word in x.split()]))
     df["AwayTeam"] = df["AwayTeam"].apply(lambda x: ' '.join([word.capitalize() for word in x.split()]))
 
-    print("Latest PRediction:")
-    print(df)
-
     return df
 
 def load_all_result_files():
@@ -468,6 +465,7 @@ def results():
         results=df,
         leagues=leagues,
         weeks=weeks,
+        league_names=LEAGUE_NAMES
     )
 
 @app.route("/informations")
