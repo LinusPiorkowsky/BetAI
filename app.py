@@ -33,29 +33,29 @@ scheduler = BackgroundScheduler()
 scheduler.add_job(run_downloads,
                   trigger='cron', 
                   day_of_week='fri',
-                  hour=17,
-                  minute=0)
+                  hour=18,
+                  minute=10)
 
 # 2) Fridays at 17:30 => prediction2
 scheduler.add_job(run_prediction2,
                   trigger='cron',
                   day_of_week='fri',
-                  hour=17,
-                  minute=30)
+                  hour=18,
+                  minute=20)
 
 # 3) Tuesdays at 13:00 => downloads
 scheduler.add_job(run_downloads,
                   trigger='cron',
                   day_of_week='tue',
-                  hour=13,
-                  minute=0)
+                  hour=14,
+                  minute=10)
 
 # 4) Tuesdays at 13:30 => comparison
 scheduler.add_job(run_comparison,
                   trigger='cron',
                   day_of_week='tue',
-                  hour=13,
-                  minute=30)
+                  hour=14,
+                  minute=20)
 
 # Start the scheduler
 scheduler.start()
@@ -101,41 +101,8 @@ def get_latest_prediction():
 
     # Example of removing matches that started more than 2.5 hours ago
     # (Uncomment if you want to filter out past matches)
-    # now = datetime.now()
-    # df = df[df["Date"] + timedelta(hours=2.5) > now]
-
-    # Capitalize team names
-    df["HomeTeam"] = df["HomeTeam"].apply(lambda x: ' '.join([word.capitalize() for word in x.split()]))
-    df["AwayTeam"] = df["AwayTeam"].apply(lambda x: ' '.join([word.capitalize() for word in x.split()]))
-
-    return df
-
-# Letzte Prediction-Datei laden
-def get_latest_prediction():
-    """Find the latest prediction CSV file and load it into a DataFrame."""
-    prediction_files = sorted(
-        [f for f in os.listdir(PREDICTION_DIR) 
-         if f.startswith("prediction") and f.endswith(".csv")],
-        key=lambda x: int(''.join(filter(str.isdigit, x.replace("prediction", "")))) 
-                      if any(char.isdigit() for char in x) else 0,
-        reverse=True  # Sort descending to get the newest file first
-    )
-
-    if not prediction_files:
-        return None
-
-    latest_file = os.path.join(PREDICTION_DIR, prediction_files[0])
-    df = pd.read_csv(latest_file)
-
-    # Convert Date and Time columns to a proper datetime
-    df["Date"] = pd.to_datetime(df["Date"], format="%Y-%m-%d")
-    df["Date"] = df["Date"].astype(str) + " " + df["Time"]
-    df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
-
-    # Example of removing matches that started more than 2.5 hours ago
-    # (Uncomment if you want to filter out past matches)
-    # now = datetime.now()
-    # df = df[df["Date"] + timedelta(hours=2.5) > now]
+    now = datetime.now()
+    df = df[df["Date"] + timedelta(hours=2.5) > now]
 
     # Capitalize team names
     df["HomeTeam"] = df["HomeTeam"].apply(lambda x: ' '.join([word.capitalize() for word in x.split()]))

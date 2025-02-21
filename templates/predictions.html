@@ -26,7 +26,7 @@
       {% if date_range %}
         {{ date_range }}
       {% else %}
-        No predictions found.
+        <div style="text-align: center; width: 100%;">No predictions available</div>
       {% endif %}
     </p>
 
@@ -131,7 +131,7 @@
         </div>
       {% endfor %}
     {% else %}
-      <p>No current predictions found.</p>
+      <p style="text-align: center; width: 100%;">New Predictions Friday 6pm</p>
     {% endif %}
   </div>
 
@@ -175,7 +175,7 @@
     // Initial filter on page load
     filterPredictions();
   </script>
-</body>
+
   <!-- Footer -->
   <footer>
     <div class="footer-content">
@@ -202,4 +202,5 @@
       color: #fff;
     }
   </style>
+</body>
 </html>
