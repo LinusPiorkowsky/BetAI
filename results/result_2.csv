@@ -1,0 +1,2 @@
+Div,Date,Weekday,Time,HomeTeam,AwayTeam,Prediction,Actual_Result,Score,Prediction_Correct,B365H,B365D,B365A,Prob_H,Prob_D,Prob_A,double_chance,1X_odds,X2_odds,DC_1X_Correct,DC_X2_Correct,High_conf,High_conf_dc
+E0,2025-02-19,Wednesday,20:30,Aston Villa,Liverpool,A,D,2:2,False,3.9,4.0,1.83,0.0739,0.2633,0.6628,X2,1.97,1.26,True,True,0,1
