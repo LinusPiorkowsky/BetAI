@@ -397,3 +397,44 @@
 .prediction-card.wrong {
   border: 2px solid #e74c3c; /* red */
 }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  text-align: center; /* Ensures all text is centered */
+}
+
+.cards-container {
+  flex: 1; /* Pushes the footer down */
+}
+
+footer {
+  background-color: #222;
+  color: white;
+  text-align: center;
+  padding: 10px;
+  margin-top: auto; /* Ensures it stays at the bottom */
+  width: 100%;
+  position: relative;
+  font-size: 14px; /* Adjusts text size */
+}
+
+.footer-content {
+  text-align: center;
+  width: 100%;
+  line-height: 1; /* Improves spacing */
+}
+
+.footer-links a {
+  font-size: 13px; /* Slightly smaller for links */
+  color: #ddd;
+  text-decoration: none;
+  margin: 0 8px;
+}
+
+.footer-links a:hover {
+  color: #fff;
+}
