@@ -105,7 +105,7 @@
               {% elif final_bet == '1X' %}
                 {% set final_bet = '1X' %}
                 {% set predicted_odd = p['1X_odds'] if '1X_odds' in p else 0 %}
-                {% set predicted_prob = p['Prob_H'] + p['Prob_D'] %}
+                {% set predicted_prob = p['Prob_H'] + p['Prob_D'] - 0.1 %}
               {% elif final_bet == 'A' %}
                 {% set final_bet = p['AwayTeam'] %}
                 {% set predicted_odd = p['B365A'] if 'B365A' in p else 0 %}
@@ -113,7 +113,7 @@
               {% elif final_bet == 'X2' %}
                 {% set final_bet = 'X2' %}
                 {% set predicted_odd = p['X2_odds'] if 'X2_odds' in p else 0 %}
-                {% set predicted_prob = p['Prob_D'] + p['Prob_A'] %}
+                {% set predicted_prob = p['Prob_D'] + p['Prob_A'] - 0.1 %}
               {% else %}
                 {# Fallback if FinalBet is None or unknown #}
                 {% set final_bet = '??' %}

@@ -7,8 +7,8 @@ from flask import Flask, render_template, request
 app = Flask(__name__)
 
 # Directory where your CSV prediction files are stored
-PREDICTION_DIR = "predictions"
-RESULT_DIR = "results"
+PREDICTION_DIR = "predictions" # /home/MachineLearningBets/BetAI/predictions
+RESULT_DIR = "results" # /home/MachineLearningBets/BetAI/results
 
 # Mapping of league codes to their names
 LEAGUE_NAMES = {
@@ -185,21 +185,25 @@ def index():
         prob_d = row.get("Prob_D", 0.0)
         prob_a = row.get("Prob_A", 0.0)
         high_conf = row.get("High_conf", 0)
+        b365h = row.get("B365H", 0.0)
+        b365a = row.get("B365A", 0.0)
 
         if prediction == "H":
             # If Prob_H <= 0.6 => '1X'; else 'H'
-            return "1X" if prob_h <= 0.7 else "H"
+            return "1X" if prob_h <= 0.65 else "H"
 
         elif prediction == "D":
             # If Prob_H + Prob_D > Prob_D + Prob_A => '1X' else 'X2'
-            if (prob_h + prob_d) > (prob_d + prob_a):
+            if (b365h) < (b365a):
                 return "1X"
             else:
                 return "X2"
 
         elif prediction == "A":
-            # If high_conf == 1 => 'A'; else => 'X2'
-            return "A" if high_conf == 1 else "X2"
+            if (b365a) < 2.21:
+                return "A"
+            else:
+                return "X2"
 
         # If no condition matched, fallback
         return None
@@ -259,7 +263,7 @@ def index():
     )
 
     # 4d) Last 7 days: define the cutoff
-    one_week_ago = pd.Timestamp.now() - pd.Timedelta(days=7)
+    one_week_ago = pd.Timestamp.now() - pd.Timedelta(days=10)
     df_last_week = all_results[all_results["Date"] >= one_week_ago]
 
     # High confidence last week
@@ -379,16 +383,22 @@ def results():
         prob_d = row.get("Prob_D", 0.0)
         prob_a = row.get("Prob_A", 0.0)
         high_conf = row.get("High_conf", 0)
+        b365h = row.get("B365H", 0.0)
+        b365a = row.get("B365A", 0.0)
 
         if prediction == "H":
-            return "1X" if prob_h <= 0.6 else "H"
+            return "1X" if prob_h <= 0.65 else "H"
         elif prediction == "D":
-            if (prob_h + prob_d) > (prob_d + prob_a):
+            if (b365h) < (b365a):
                 return "1X"
             else:
                 return "X2"
         elif prediction == "A":
-            return "A" if high_conf == 1 else "X2"
+            if (b365a) < 2.21:
+                return "A"
+            else:
+                return "X2"
+        
         return None
 
     # 4) Apply the final bet logic
