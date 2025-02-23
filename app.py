@@ -44,7 +44,7 @@ def get_latest_prediction():
     # Example of removing matches that started more than 2.5 hours ago
     # (Uncomment if you want to filter out past matches)
     now = datetime.now()
-    df = df[df["Date"] + timedelta(hours=2.5) > now]
+    df = df[df["Date"] + timedelta(hours=1.0) > now]
 
     # Capitalize team names
     df["HomeTeam"] = df["HomeTeam"].apply(lambda x: ' '.join([word.capitalize() for word in x.split()]))
@@ -200,7 +200,7 @@ def index():
                 return "X2"
 
         elif prediction == "A":
-            if (b365a) < 2.21:
+            if (b365a) < 2.21 and prob_a > 0.65:
                 return "A"
             else:
                 return "X2"
@@ -394,7 +394,7 @@ def results():
             else:
                 return "X2"
         elif prediction == "A":
-            if (b365a) < 2.21:
+            if (b365a) < 2.21 and prob_a > 0.65:
                 return "A"
             else:
                 return "X2"

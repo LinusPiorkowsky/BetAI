@@ -86,7 +86,7 @@
         {% elif p['Prediction'] == 'A' %}
           {% set predicted_team = p['AwayTeam'] %}
           {% set predicted_prob = p['Prob_A'] %}
-          {% if p['B365A'] < 2.21 %}
+          {% if p['B365A'] < 2.21 and p['Prob_A'] > 0.65 %}
             {% set predicted_bet = p['AwayTeam'] %}
             {% set predicted_prob2 = p['Prob_A'] %}
             {% set predicted_odd = p['B365A'] %}
