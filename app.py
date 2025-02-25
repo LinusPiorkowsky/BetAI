@@ -262,9 +262,32 @@ def index():
         if all_bets_total > 0 else 0.0
     )
 
-    # 4d) Last 7 days: define the cutoff
-    one_week_ago = pd.Timestamp.now() - pd.Timedelta(days=10)
-    df_last_week = all_results[all_results["Date"] >= one_week_ago]
+    
+    # Ensure Date column is in datetime format
+    all_results["Date"] = pd.to_datetime(all_results["Date"]).dt.normalize()
+
+    # Get today's date
+    today = pd.Timestamp.now().normalize()
+
+    # Get the current ISO year and week number
+    current_year, current_week, _ = today.isocalendar()
+
+    # Assign year and week to each row in the DataFrame
+    all_results["Year"] = all_results["Date"].dt.isocalendar().year
+    all_results["Week"] = all_results["Date"].dt.isocalendar().week
+
+    # Determine last week's year and week number
+    if current_week == 1:  # Handle cases where it's the first week of the year
+        last_week_year = current_year - 1
+        last_week_number = 52  # Assuming standard 52-week year (can be 53 in some cases)
+    else:
+        last_week_year = current_year
+        last_week_number = current_week - 1
+
+    # ✅ Filter only last week's data (Monday to Sunday)
+    df_last_week = all_results[
+        (all_results["Year"] == last_week_year) & (all_results["Week"] == last_week_number)
+    ]
 
     # High confidence last week
     df_high_conf_week = df_last_week[df_last_week["High_conf"] == 1]
