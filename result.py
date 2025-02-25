@@ -12,7 +12,7 @@ import pandas as pd
 # ------------------------------------------------------------------------------
 BASE_DIR = "/home/MachineLearningBets/BetAI"
 
-SAVE_DIR = os.path.join(BASE_DIR, "data", "2024_25")   # Where we store newly extracted league CSVs
+SAVE_DIR = os.path.join(BASE_DIR, "data", "2024_25")  # Where fresh league CSVs are stored
 PREDICTIONS_DIR = os.path.join(BASE_DIR, "predictions")
 RESULTS_DIR = os.path.join(BASE_DIR, "results")
 
@@ -21,10 +21,9 @@ ALLOWED_LEAGUES = {
     "I1.csv","I2.csv","SP1.csv","SP2.csv"
 }
 
-# URL from football-data.co.uk (update if desired)
+# Example Football-Data URL for the 2024/25 season
 DATASET_URL = "https://www.football-data.co.uk/mmz4281/2425/data.zip"
 
-# Ensure directories exist
 os.makedirs(SAVE_DIR, exist_ok=True)
 os.makedirs(PREDICTIONS_DIR, exist_ok=True)
 os.makedirs(RESULTS_DIR, exist_ok=True)
@@ -37,7 +36,6 @@ def download_dataset(url: str, zip_filename: str) -> None:
     Download a ZIP from `url`, extract only ALLOWED_LEAGUES into SAVE_DIR.
     """
     temp_zip_path = os.path.join(SAVE_DIR, zip_filename)
-
     try:
         resp = requests.get(url, timeout=10)
         resp.raise_for_status()
@@ -62,109 +60,67 @@ def download_dataset(url: str, zip_filename: str) -> None:
         print("❌ Error: Not a valid ZIP file.")
 
 # ------------------------------------------------------------------------------
-# 3) READ FRESH ACTUALS (from data/2024_25)
+# 3) READ FRESH ACTUAL RESULTS
 # ------------------------------------------------------------------------------
 def read_fresh_actuals(data_directory: str) -> pd.DataFrame:
     """
-    Reads any CSV in data_directory that ends with one of ALLOWED_LEAGUES,
-    merges them, renames FTHG->FTHG_h, FTAG->FTAG_h, FTR->FTR_h, etc.
-    Typical football-data.co.uk columns: Date, HomeTeam, AwayTeam, FTHG, FTAG, FTR, ...
-    We'll keep [Date, HomeTeam, AwayTeam, FTHG_h, FTAG_h, FTR_h] for merging with predictions.
+    Reads any .csv in `data_directory` matching ALLOWED_LEAGUES.
+    Keeps essential columns:
+       Div, Date, Time, HomeTeam, AwayTeam, FTHG→FTHG_h, FTAG→FTAG_h, FTR→FTR_h
+    Returns a combined DataFrame.
     """
-    print(f"🔎 Reading fresh actual results in: {data_directory}")
-    all_files = os.listdir(data_directory)
-
-    # Identify relevant CSVs
     league_files = [
-        f for f in all_files
+        f for f in os.listdir(data_directory)
         if any(f.endswith(league) for league in ALLOWED_LEAGUES)
     ]
-
     if not league_files:
-        print("  => No league files found in data/2024_25. Returning empty DF.")
-        return pd.DataFrame(columns=["Date","HomeTeam","AwayTeam","FTHG_h","FTAG_h","FTR_h"])
+        print("❌ No allowed league files found. Returning empty.")
+        return pd.DataFrame(columns=["Div","Date","Time","HomeTeam","AwayTeam","FTHG_h","FTAG_h","FTR_h"])
 
     df_list = []
     for csv_file in league_files:
         path = os.path.join(data_directory, csv_file)
-        print(f"  Reading fresh league file: {csv_file}")
-
-        # Removed errors="ignore" because it's invalid for read_csv()
+        print(f"Reading actual data file: {csv_file}")
         df = pd.read_csv(path, parse_dates=["Date"], dayfirst=True, encoding="utf-8")
 
-        # Rename standard columns
+        # Rename columns
         rename_map = {}
-        if "FTHG" in df.columns:
-            rename_map["FTHG"] = "FTHG_h"
-        if "FTAG" in df.columns:
-            rename_map["FTAG"] = "FTAG_h"
-        if "FTR" in df.columns:
-            rename_map["FTR"] = "FTR_h"
-
+        if "FTHG" in df.columns: rename_map["FTHG"] = "FTHG_h"
+        if "FTAG" in df.columns: rename_map["FTAG"] = "FTAG_h"
+        if "FTR"  in df.columns: rename_map["FTR"]  = "FTR_h"
         df.rename(columns=rename_map, inplace=True)
 
-        # Keep only relevant columns
-        keep_cols = {"Date","HomeTeam","AwayTeam","FTHG_h","FTAG_h","FTR_h"}
-        existing = list(keep_cols.intersection(df.columns))
-        df = df[existing]
+        keep_cols = {"Div","Date","Time","HomeTeam","AwayTeam","FTHG_h","FTAG_h","FTR_h"}
+        df = df[list(keep_cols.intersection(df.columns))]
         df_list.append(df)
 
-    combined = pd.concat(df_list, ignore_index=True).drop_duplicates()
-    print(f"🔎 Fresh actuals shape={combined.shape}, columns={list(combined.columns)}")
-    return combined
+    return pd.concat(df_list, ignore_index=True).drop_duplicates()
 
 # ------------------------------------------------------------------------------
 # 4) READ HISTORICAL RESULTS (result_*.csv)
 # ------------------------------------------------------------------------------
 def read_all_results(results_directory: str) -> pd.DataFrame:
     """
-    Reads each 'result_*.csv', renames 'Actual_Result' -> 'FTR_h' if present,
-    parses 'Score' -> FTHG_h, FTAG_h if present, merges them all.
+    Reads each 'result_*.csv', combining them into a single DataFrame.
+    We assume final output columns might include 'Actual_Result','Score','FTHG_h','FTAG_h','FTR_h' etc.
+    We'll store at least [Date,HomeTeam,AwayTeam] to avoid duplicates.
     """
-    print(f"🔎 Checking for 'result_*.csv' in {results_directory}")
-    all_results = sorted(
+    all_files = sorted(
         f for f in os.listdir(results_directory)
         if re.match(r"result_(\d+)\.csv$", f)
     )
-    if not all_results:
-        print("  => No result_*.csv found, returning empty.")
-        return pd.DataFrame(columns=["Date","HomeTeam","AwayTeam","FTR_h","FTHG_h","FTAG_h"])
+    if not all_files:
+        print("No existing result_*.csv found; starting fresh.")
+        return pd.DataFrame(columns=["Date","HomeTeam","AwayTeam"])
 
     df_list = []
-    for fname in all_results:
-        path = os.path.join(results_directory, fname)
-        print(f"  Reading historical result file: {fname}")
-
-        # Removed errors="ignore"
+    for fn in all_files:
+        path = os.path.join(results_directory, fn)
+        print(f"Reading historical file: {fn}")
         df = pd.read_csv(path, parse_dates=["Date"], dayfirst=True, encoding="utf-8")
-
-        # If 'Actual_Result' is present, rename to 'FTR_h'
-        if "Actual_Result" in df.columns:
-            df.rename(columns={"Actual_Result":"FTR_h"}, inplace=True)
-
-        # If 'Score' is present, parse it => FTHG_h, FTAG_h
-        if "Score" in df.columns:
-            fthg_vals = []
-            ftag_vals = []
-            for val in df["Score"]:
-                if isinstance(val, str) and ":" in val:
-                    try:
-                        hg_str, ag_str = val.split(":",1)
-                        fthg_vals.append(int(hg_str))
-                        ftag_vals.append(int(ag_str))
-                    except ValueError:
-                        fthg_vals.append(None)
-                        ftag_vals.append(None)
-                else:
-                    fthg_vals.append(None)
-                    ftag_vals.append(None)
-            df["FTHG_h"] = fthg_vals
-            df["FTAG_h"] = ftag_vals
-
         df_list.append(df)
 
-    combined = pd.concat(df_list, ignore_index=True).drop_duplicates()
-    print(f"🔎 Combined historical shape={combined.shape}, columns={list(combined.columns)}")
+    combined = pd.concat(df_list, ignore_index=True).drop_duplicates(subset=["Date","HomeTeam","AwayTeam"])
     return combined
 
 # ------------------------------------------------------------------------------
@@ -172,49 +128,42 @@ def read_all_results(results_directory: str) -> pd.DataFrame:
 # ------------------------------------------------------------------------------
 def read_all_predictions(pred_dir: str) -> pd.DataFrame:
     """
-    Reads all 'predictions_(N).csv' into one big DataFrame, ignoring duplicates.
+    Reads all 'predictions_(N).csv' into a single DataFrame.
+    Must have columns like: Div,Date,Weekday,Time,HomeTeam,AwayTeam,Prediction,...
     """
-    print(f"🔎 Checking for 'predictions_*.csv' in {pred_dir}")
     all_preds = sorted(
         f for f in os.listdir(pred_dir)
         if re.match(r"predictions_(\d+)\.csv$", f)
     )
     if not all_preds:
-        print("  => No prediction files found.")
+        print("No predictions found.")
         return pd.DataFrame()
 
     df_list = []
-    for fname in all_preds:
-        path = os.path.join(pred_dir, fname)
-        print(f"  Reading {fname}")
-
-        # Removed errors="ignore"
+    for fn in all_preds:
+        path = os.path.join(pred_dir, fn)
+        print(f"Reading predictions file: {fn}")
         df = pd.read_csv(path, parse_dates=["Date"], dayfirst=True, encoding="utf-8")
         df_list.append(df)
 
-    combined_pred = pd.concat(df_list, ignore_index=True).drop_duplicates()
-    print(f"🔎 Combined predictions shape={combined_pred.shape}, columns={list(combined_pred.columns)}")
-    return combined_pred
+    return pd.concat(df_list, ignore_index=True).drop_duplicates()
 
 # ------------------------------------------------------------------------------
 # 6) GET NEXT RESULT NUMBER
 # ------------------------------------------------------------------------------
 def get_next_result_number(results_directory: str) -> int:
-    """
-    Return 1 + max of the existing 'result_(N).csv' or 1 if none exist.
-    """
-    all_results = [
+    existing = [
         f for f in os.listdir(results_directory)
         if re.match(r"result_(\d+)\.csv$", f)
     ]
-    if not all_results:
+    if not existing:
         return 1
 
     def extract_num(fname):
         m = re.search(r"result_(\d+)\.csv$", fname)
         return int(m.group(1)) if m else 0
 
-    return max(extract_num(x) for x in all_results) + 1
+    return max(extract_num(x) for x in existing) + 1
 
 # ------------------------------------------------------------------------------
 # 7) MAIN LOGIC
@@ -222,73 +171,115 @@ def get_next_result_number(results_directory: str) -> int:
 def main():
     """
     Steps:
-      1) Download & unzip new data (optional).
-      2) Read fresh "actuals" from data/2024_25 => fresh_actuals_df
-      3) Read existing results => historical_df
-      4) Read all predictions => predictions_df
-      5) Compare predictions with fresh_actuals => newly completed matches
-      6) Exclude any matches already in historical => truly new
-      7) Write them to a single result_{N}.csv if any exist
+      1) Download & unzip data (optional).
+      2) Read fresh actual data => FTHG_h, FTAG_h, FTR_h
+      3) Read existing results => historical
+      4) Read predictions => predictions
+      5) Merge => only keep matches with a final result
+      6) Exclude duplicates => only new
+      7) Reformat columns => save as result_X.csv
     """
 
-    # (1) Download step (comment out if not needed)
+    # 1) Download step (comment out if not needed):
     download_dataset(DATASET_URL, "freshdata.zip")
 
-    # (2) Fresh actual results from your newly extracted CSV files
-    fresh_actuals_df = read_fresh_actuals(SAVE_DIR)
-    if fresh_actuals_df.empty:
-        print("❌ No fresh actual data found. Exiting.")
+    # 2) Fresh actual data
+    fresh_df = read_fresh_actuals(SAVE_DIR)
+    if fresh_df.empty:
+        print("No fresh actual data. Exiting.")
         return
 
-    # (3) Existing historical data from result_*.csv
+    # 3) Historical
     historical_df = read_all_results(RESULTS_DIR)
 
-    # (4) All predictions from predictions_*.csv
-    predictions_df = read_all_predictions(PREDICTIONS_DIR)
-    if predictions_df.empty:
-        print("❌ No predictions found. Exiting.")
+    # 4) Predictions
+    preds_df = read_all_predictions(PREDICTIONS_DIR)
+    if preds_df.empty:
+        print("No predictions found. Exiting.")
         return
 
-    # (5) Merge predictions with fresh actuals
-    print("🔎 Merging predictions with fresh actuals to see which matches are completed...")
-    predictions_df["Date"] = pd.to_datetime(predictions_df["Date"], errors="coerce")
-    fresh_actuals_df["Date"] = pd.to_datetime(fresh_actuals_df["Date"], errors="coerce")
+    # 5) Merge predictions with fresh actual results (on [Date,HomeTeam,AwayTeam])
+    print("Merging predictions with actual results to find completed matches...")
+    preds_df["Date"] = pd.to_datetime(preds_df["Date"], errors="coerce")
+    fresh_df["Date"] = pd.to_datetime(fresh_df["Date"], errors="coerce")
 
     merged = pd.merge(
-        predictions_df,
-        fresh_actuals_df,
+        preds_df,
+        fresh_df,
         on=["Date","HomeTeam","AwayTeam"],
         how="left"
     )
-    print(f"   => merged shape={merged.shape}, columns={list(merged.columns)}")
+    print(f"Merged shape={merged.shape}")
 
-    # Keep only matches that have a known final result => 'FTR_h' not null
+    # Only keep rows that have a final result => FTR_h not null
     completed = merged[merged["FTR_h"].notna()].copy()
-    print(f"   => {len(completed)} matches are completed (have final result).")
+    print(f"{len(completed)} matches are completed and in predictions.")
 
     if completed.empty:
-        print("✅ No newly completed matches found in predictions. Done.")
+        print("No new completed matches found.")
         return
 
-    # (6) Exclude matches already in historical => truly new
-    hist_idx = historical_df.set_index(["Date","HomeTeam","AwayTeam"])
-    comp_idx = completed.set_index(["Date","HomeTeam","AwayTeam"])
+    # 6) Exclude matches already in historical
+    if not historical_df.empty:
+        hist_idx = historical_df.set_index(["Date","HomeTeam","AwayTeam"])
+        comp_idx = completed.set_index(["Date","HomeTeam","AwayTeam"])
+        duplicates_mask = comp_idx.index.isin(hist_idx.index)
+        truly_new = completed[~duplicates_mask].reset_index(drop=True)
+    else:
+        truly_new = completed
 
-    duplicates_mask = comp_idx.index.isin(hist_idx.index)
-    truly_new = completed[~duplicates_mask].reset_index(drop=True)
-    print(f"   => {len(truly_new)} truly new matches (not in historical).")
-
+    print(f"{len(truly_new)} matches are truly new (not in historical).")
     if truly_new.empty:
-        print("✅ All these completed matches are already in historical. Nothing to add.")
+        print("All these completed matches already exist in historical. Nothing to add.")
         return
 
-    # (7) Write them out to a new result_{N}.csv
+    # 7) Reformat columns for final CSV
+
+    # (A) Rename FTR_h -> Actual_Result
+    truly_new["Actual_Result"] = truly_new["FTR_h"]
+
+    # (B) Create Score from FTHG_h, FTAG_h (e.g., "2:1")
+    def make_score(row):
+        if pd.notna(row.get("FTHG_h")) and pd.notna(row.get("FTAG_h")):
+            return f"{int(row['FTHG_h'])}:{int(row['FTAG_h'])}"
+        return None
+    truly_new["Score"] = truly_new.apply(make_score, axis=1)
+
+    # (C) Prediction_Correct
+    if "Prediction" in truly_new.columns:
+        truly_new["Prediction_Correct"] = truly_new["Prediction"] == truly_new["Actual_Result"]
+    else:
+        truly_new["Prediction_Correct"] = None
+
+    # (D) DC_1X_Correct / DC_X2_Correct
+    truly_new["DC_1X_Correct"] = truly_new.apply(
+        lambda x: (x["Actual_Result"] in ["H","D"]) if pd.notna(x.get("1X_odds")) else None,
+        axis=1
+    )
+    truly_new["DC_X2_Correct"] = truly_new.apply(
+        lambda x: (x["Actual_Result"] in ["D","A"]) if pd.notna(x.get("X2_odds")) else None,
+        axis=1
+    )
+
+    # (E) Final columns in your desired order
+    final_cols = [
+        "Div","Date","Weekday","Time","HomeTeam","AwayTeam","Prediction","Actual_Result",
+        "Score","Prediction_Correct","B365H","B365D","B365A","Prob_H","Prob_D","Prob_A",
+        "double_chance","1X_odds","X2_odds","DC_1X_Correct","DC_X2_Correct",
+        "High_conf","High_conf_dc"
+    ]
+
+    # Reindex to these columns if they exist in the data
+    existing_cols = [c for c in final_cols if c in truly_new.columns]
+    final_df = truly_new.reindex(columns=existing_cols)
+
+    # Save to result_{N}.csv
     next_num = get_next_result_number(RESULTS_DIR)
     out_name = f"result_{next_num}.csv"
     out_path = os.path.join(RESULTS_DIR, out_name)
-    truly_new.to_csv(out_path, index=False, encoding="utf-8-sig")
-    print(f"✅ Wrote {len(truly_new)} newly completed matches to {out_name}.")
-    print("=== DONE. ===")
+    final_df.to_csv(out_path, index=False, encoding="utf-8-sig")
+
+    print(f"✅ Wrote {len(final_df)} new matches to {out_name}.")
 
 # ------------------------------------------------------------------------------
 # 8) ENTRY POINT
