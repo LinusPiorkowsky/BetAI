@@ -199,24 +199,41 @@ def main():
     # C) Compare with existing predictions => skip duplicates
     existing_preds = read_all_predictions(PREDICTIONS_DIR)
     if not existing_preds.empty:
-        existing_preds["Date"] = pd.to_datetime(existing_preds["Date"], dayfirst=True, errors="coerce")
+        # Convert fixtures date format to match predictions (YYYY-MM-DD)
+        fixtures['Date'] = pd.to_datetime(fixtures['Date'], dayfirst=True)
 
-        def fix_pred_time(tstr):
+        # Standardize time formats in both dataframes
+        def fix_time_format(time_str):
             try:
-                dt = pd.to_datetime(tstr, format="%H:%M", errors="raise")
-            except ValueError:
-                dt = pd.to_datetime(tstr, format="%H:%M:%S", errors="coerce")
-            if pd.isnull(dt):
-                return ""
-            return dt.strftime("%H:%M")
+                if pd.isna(time_str) or time_str == '':
+                    return ''
+                # Handle various time formats
+                time_str = str(time_str)
+                if ':' in time_str:
+                    if len(time_str) <= 5:  # Format like "19:30"
+                        return time_str
+                    # Format like "19:30:00"
+                    return time_str[:5]
+                return time_str
+            except Exception:
+                return ''
 
-        existing_preds["Time"] = existing_preds["Time"].apply(fix_pred_time)
+        existing_preds['Time'] = existing_preds['Time'].apply(fix_time_format)
+        fixtures['Time'] = fixtures['Time'].apply(fix_time_format)
 
-        # set index
-        exist_idx = existing_preds.set_index(["Date","Time","HomeTeam","AwayTeam"])
-        fix_idx   = fixtures.set_index(["Date","Time","HomeTeam","AwayTeam"])
+        print(f"✅ Checking {len(fixtures)} fixtures against {len(existing_preds)} existing predictions...")
 
-        duplicates = fix_idx.index.isin(exist_idx.index)
+        # Create matching keys for comparison
+        existing_preds['match_key'] = existing_preds.apply(
+            lambda x: f"{x['Date'].strftime('%Y-%m-%d')}_{x['Time']}_{x['HomeTeam']}_{x['AwayTeam']}", axis=1)
+        fixtures['match_key'] = fixtures.apply(
+            lambda x: f"{x['Date'].strftime('%Y-%m-%d')}_{x['Time']}_{x['HomeTeam']}_{x['AwayTeam']}", axis=1)
+
+        # Find duplicates
+        duplicate_keys = set(fixtures['match_key']).intersection(set(existing_preds['match_key']))
+        duplicates = fixtures['match_key'].isin(duplicate_keys)
+
+        # Filter to new fixtures
         new_fixtures = fixtures[~duplicates].reset_index(drop=True)
 
         if new_fixtures.empty:
@@ -477,7 +494,7 @@ def main():
     X_test = test_data[feature_columns]
     y_test = test_data['FTR_encoded']
 
-    reference_data = historical_data[historical_data['Date'] < pd.to_datetime('2024-01-01')]
+    reference_data = historical_data[historical_data['Date'] < pd.Timestamp.today()]
     fixtures = compute_features(fixtures, reference_data)
 
     from sklearn.preprocessing import StandardScaler
