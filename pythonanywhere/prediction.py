@@ -574,8 +574,6 @@ def main():
     fixtures['X2_prob'] = (fixtures['Prob_D'] + fixtures['Prob_A']).round(4)
     fixtures['High_conf_dc'] = ((fixtures['1X_prob'] > 0.90) | (fixtures['X2_prob'] > 0.87)).astype(int)
 
-    predictions_df['Time'] = predictions_df['Time'] + pd.Timedelta(hours=timezone)
-
     predictions_df = fixtures[[
         'Div', 'Date', 'Weekday', 'Time', 'HomeTeam', 'AwayTeam', 'Prediction',
         'B365H', 'B365D', 'B365A',
@@ -585,7 +583,7 @@ def main():
     ]]
 
     predictions_df['Time'] = predictions_df['Time'] + pd.Timedelta(hours=timezone)
-    
+
     predictions_df.sort_values(["Date","Time"], inplace=True)
 
     os.makedirs(PREDICTIONS_DIR, exist_ok=True)
