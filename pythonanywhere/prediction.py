@@ -201,6 +201,16 @@ def main():
     if not existing_preds.empty:
         # Convert fixtures date format to match predictions (YYYY-MM-DD)
         fixtures['Date'] = pd.to_datetime(fixtures['Date'], dayfirst=True)
+        existing_preds['Time'] = pd.to_datetime(
+            existing_preds['Time'].astype(str),
+            format='%H:%M',
+            errors='coerce'
+        )
+
+        # Subtract the timezone offset
+        existing_preds['Time'] = (
+            existing_preds['Time'] - pd.Timedelta(hours=1)
+        ).dt.strftime('%H:%M')
 
         # Standardize time formats in both dataframes
         def fix_time_format(time_str):
@@ -582,7 +592,10 @@ def main():
         'High_conf','High_conf_dc'
     ]]
 
-    predictions_df['Time'] = predictions_df['Time'] + pd.Timedelta(hours=timezone)
+    # Convert 'Time' column to datetime.time before adding timezone offset
+    predictions_df['Time'] = pd.to_datetime(predictions_df['Time'], format='%H:%M').dt.time
+    predictions_df['Time'] = (pd.to_datetime(predictions_df['Time'].astype(str)) + pd.Timedelta(hours=timezone)).dt.time
+
 
     predictions_df.sort_values(["Date","Time"], inplace=True)
 

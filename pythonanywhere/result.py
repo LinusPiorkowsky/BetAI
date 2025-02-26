@@ -207,9 +207,16 @@ def main():
         preds_df,
         fresh_df,
         on=["Date","HomeTeam","AwayTeam"],
-        how="left"
+        how="left",
+        suffixes=("_pred", "_act")
     )
     print(f"Merged shape={merged.shape}")
+
+    # Ensure 'Div' is properly retained from predictions
+    if "Div_pred" in merged.columns:
+        merged.rename(columns={"Div_pred": "Div"}, inplace=True)
+    elif "Div" in preds_df.columns:
+        merged["Div"] = preds_df["Div"]
 
     # Only keep rows that have a final result => FTR_h not null
     completed = merged[merged["FTR_h"].notna()].copy()

@@ -456,8 +456,8 @@ def results():
     df = df.sort_values(by=["Date", "Time"], ascending=False)
 
     # 7) Gather unique leagues/weeks for filtering
-    leagues = sorted(df["Div"].dropna().unique())
-    weeks = sorted(df["Week"].dropna().unique())
+    leagues = sorted(df["Div"].unique().tolist())
+    weeks = sorted(df["Week"].unique().tolist())
 
     # Finally, pass the updated DataFrame to your template
     return render_template(
