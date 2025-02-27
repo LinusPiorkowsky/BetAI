@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from datetime import datetime
 import os
 import re
 import requests
@@ -92,7 +93,13 @@ def read_fresh_actuals(data_directory: str) -> pd.DataFrame:
 
         keep_cols = {"Div","Date","Time","HomeTeam","AwayTeam","FTHG_h","FTAG_h","FTR_h"}
         df = df[list(keep_cols.intersection(df.columns))]
+        # ✅ Fix Time: Add 1 hour if it exists
+        if "Time" in df.columns and df["Time"].notna().all():
+            df["Time"] = pd.to_datetime(df["Time"], format="%H:%M", errors="coerce") + datetime.timedelta(hours=1)
+            df["Time"] = df["Time"].dt.strftime("%H:%M")  # Convert back to string format
+
         df_list.append(df)
+
 
     return pd.concat(df_list, ignore_index=True).drop_duplicates()
 
@@ -279,6 +286,10 @@ def main():
     # Reindex to these columns if they exist in the data
     existing_cols = [c for c in final_cols if c in truly_new.columns]
     final_df = truly_new.reindex(columns=existing_cols)
+
+    # Time HH:MM format
+    if "Time" in final_df.columns:
+        final_df["Time"] = final_df["Time"].str.replace(":00", "", regex=False)
 
     # Save to result_{N}.csv
     next_num = get_next_result_number(RESULTS_DIR)
