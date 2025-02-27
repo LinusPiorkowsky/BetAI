@@ -4,11 +4,11 @@ import pandas as pd
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="static")
 
 # Directory where your CSV prediction files are stored
-PREDICTION_DIR = "predictions" # /home/MachineLearningBets/BetAI/predictions
-RESULT_DIR = "results" # /home/MachineLearningBets/BetAI/results
+PREDICTION_DIR = "/home/MachineLearningBets/BetAI/predictions" # /home/MachineLearningBets/BetAI/predictions
+RESULT_DIR = "/home/MachineLearningBets/BetAI/results" # /home/MachineLearningBets/BetAI/results
 
 # Mapping of league codes to their names
 LEAGUE_NAMES = {
@@ -23,9 +23,9 @@ LEAGUE_NAMES = {
 def get_latest_prediction():
     """Find the latest prediction CSV file and load it into a DataFrame."""
     prediction_files = sorted(
-        [f for f in os.listdir(PREDICTION_DIR) 
+        [f for f in os.listdir(PREDICTION_DIR)
          if f.startswith("prediction") and f.endswith(".csv")],
-        key=lambda x: int(''.join(filter(str.isdigit, x.replace("prediction", "")))) 
+        key=lambda x: int(''.join(filter(str.isdigit, x.replace("prediction", ""))))
                       if any(char.isdigit() for char in x) else 0,
         reverse=True  # Sort descending to get the newest file first
     )
@@ -66,7 +66,7 @@ def load_all_result_files():
     frames = []
     for file_path in file_list:
         df_temp = pd.read_csv(file_path)
-        
+
         # Convert 'Date' column to datetime (coerce errors to NaT)
         df_temp["Date"] = pd.to_datetime(df_temp["Date"], format="%Y-%m-%d", errors="coerce")
 
@@ -101,9 +101,9 @@ def get_latest_result():
     """Find the latest result CSV file and load it into a DataFrame."""
     # Sort by the numeric part in the filename descending
     prediction_files = sorted(
-        [f for f in os.listdir(RESULT_DIR) 
+        [f for f in os.listdir(RESULT_DIR)
          if f.startswith("result") and f.endswith(".csv")],
-        key=lambda x: int(''.join(filter(str.isdigit, x.replace("result", "")))) 
+        key=lambda x: int(''.join(filter(str.isdigit, x.replace("result", ""))))
                       if any(char.isdigit() for char in x) else 0,
         reverse=True
     )
@@ -262,7 +262,6 @@ def index():
         if all_bets_total > 0 else 0.0
     )
 
-    
     # Ensure Date column is in datetime format
     all_results["Date"] = pd.to_datetime(all_results["Date"]).dt.normalize()
 
@@ -284,7 +283,7 @@ def index():
         last_week_year = current_year
         last_week_number = current_week - 1
 
-    # ✅ Filter only last week's data (Monday to Sunday)
+    # Filter only last week's data (Monday to Sunday)
     df_last_week = all_results[
         (all_results["Year"] == last_week_year) & (all_results["Week"] == last_week_number)
     ]
@@ -338,7 +337,7 @@ def index():
 @app.route("/predictions")
 def predictions():
     df = get_latest_prediction()
-    
+
     if df is None or df.empty:
         return render_template(
             "predictions.html",
@@ -352,7 +351,7 @@ def predictions():
     first_date = df["Date"].min().strftime("%d/%m/%Y")
     last_date = df["Date"].max().strftime("%d/%m/%Y")
     date_range = f"{first_date} - {last_date}" if first_date != last_date else first_date
-    
+
     # Convert DataFrame rows to a list of dictionaries
     predictions_list = df.to_dict(orient="records")
 
@@ -372,35 +371,35 @@ def predictions():
 def results():
     """
     Display Past Results in 'card' style, with final bet logic & correctness.
-    Includes filtering for league, week, and high confidence bets.
     """
-    # Get query parameters for filtering
-    selected_league = request.args.get('league', '')
-    selected_week = request.args.get('week', '')
-    high_conf_only = request.args.get('high_conf', '') == 'true'
-
     df = load_all_result_files()
     if df is None or df.empty:
         return render_template("results.html", results=None, leagues=[], weeks=[])
 
-    # Ensure Date is datetime
-    if not pd.api.types.is_datetime64_any_dtype(df["Date"]):
-        df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
-
-    # Standardize columns
+    # -------------------------------------------------------------------------
+    # APPLY YOUR get_final_bet & is_bet_correct LOGIC HERE, so we don't modify
+    # load_all_result_files() at all.
+    # -------------------------------------------------------------------------
+    # 1) Standardize 'Prediction'/'Actual_Result' if needed
     if "Prediction" in df.columns:
         df["Prediction"] = df["Prediction"].astype(str).str.strip().str.upper()
     if "Actual_Result" in df.columns:
         df["Actual_Result"] = df["Actual_Result"].astype(str).str.strip().str.upper()
 
-    # Convert High_conf to numeric
+    # 2) Convert High_conf to numeric if it exists
     if "High_conf" in df.columns:
         df["High_conf"] = pd.to_numeric(df["High_conf"], errors="coerce").fillna(0).astype(int)
     else:
         df["High_conf"] = 0
 
-    # Define final bet logic
+    # 3) Define your logic for final bet
     def get_final_bet(row):
+        """
+        Same logic as provided:
+        - If 'Prediction' == 'H' => '1X' if prob_h <= 0.6 else 'H'
+        - If 'Prediction' == 'D' => '1X' if (prob_h+prob_d)>(prob_d+prob_a), else 'X2'
+        - If 'Prediction' == 'A' => 'A' if high_conf == 1, else 'X2'
+        """
         prediction = row.get("Prediction", "")
         prob_h = row.get("Prob_H", 0.0)
         prob_d = row.get("Prob_D", 0.0)
@@ -421,14 +420,19 @@ def results():
                 return "A"
             else:
                 return "X2"
-        
+
         return None
 
-    # Apply final bet logic
+    # 4) Apply the final bet logic
     df["FinalBet"] = df.apply(get_final_bet, axis=1)
 
-    # Define correctness logic
+    # 5) Correctness logic
     def is_bet_correct(actual_result, final_bet):
+        """
+        - If actual == H => correct if final_bet in [H, 1X]
+        - If actual == D => correct if final_bet in [D, 1X, X2]
+        - If actual == A => correct if final_bet in [A, X2]
+        """
         if pd.isna(actual_result) or pd.isna(final_bet):
             return False
         if actual_result == "H":
@@ -443,47 +447,24 @@ def results():
         lambda row: is_bet_correct(row.get("Actual_Result"), row.get("FinalBet")),
         axis=1
     )
-    
-    # Create Week column for filtering
+
+    # 6) Create a 'Week' column if you want to filter
     df["Week"] = df["Date"].dt.isocalendar().week
-    df["Year"] = df["Date"].dt.isocalendar().year
 
-    # Apply filters
-    filtered_df = df.copy()
-    
-    if selected_league:
-        filtered_df = filtered_df[filtered_df["Div"] == selected_league]
-    
-    if selected_week and selected_week.isdigit():
-        filtered_df = filtered_df[filtered_df["Week"] == int(selected_week)]
-    
-    if high_conf_only:
-        filtered_df = filtered_df[filtered_df["High_conf"] == 1]
+    # sort by Date and Time backwards (most recent first)
+    df = df.sort_values(by=["Date", "Time"], ascending=False)
 
-    # Calculate stats for the filtered results
-    total_bets = len(filtered_df)
-    correct_bets = filtered_df["BetCorrect"].sum()
-    accuracy = round(correct_bets / total_bets * 100, 2) if total_bets > 0 else 0.0
-
-    # Sort by Date and Time (most recent first)
-    filtered_df = filtered_df.sort_values(by=["Date", "Time"], ascending=False)
-
-    # Gather unique leagues/weeks for filtering dropdowns
+    # 7) Gather unique leagues/weeks for filtering
     leagues = sorted(df["Div"].unique().tolist())
     weeks = sorted(df["Week"].unique().tolist())
 
+    # Finally, pass the updated DataFrame to your template
     return render_template(
         "results.html",
-        results=filtered_df,
+        results=df,
         leagues=leagues,
         weeks=weeks,
-        league_names=LEAGUE_NAMES,
-        selected_league=selected_league,
-        selected_week=selected_week,
-        high_conf_only=high_conf_only,
-        total_bets=total_bets,
-        correct_bets=correct_bets,
-        accuracy=accuracy
+        league_names=LEAGUE_NAMES
     )
 
 @app.route("/informations")
