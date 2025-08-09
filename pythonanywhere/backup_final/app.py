@@ -184,40 +184,29 @@ def index():
         prob_h = row.get("Prob_H", 0.0)  # default to 0 if missing
         prob_d = row.get("Prob_D", 0.0)
         prob_a = row.get("Prob_A", 0.0)
-        prob_1x = row.get("Prob_1X", 0.0)
-        prob_x2 = row.get("Prob_X2", 0.0)
+        high_conf = row.get("High_conf", 0)
         b365h = row.get("B365H", 0.0)
-        b365d = row.get("B365D", 0.0)
         b365a = row.get("B365A", 0.0)
-        odds_1x = row.get("Odds_1X", 0.0)
-        odds_x2 = row.get("Odds_X2", 0.0)
 
         if prediction == "H":
-            if prob_h > 0.65 and b365h >= 1.4:
-                return "H"
-            elif prob_1x > 0.75 and odds_1x > 1.2:
-                return "1X"
-            else: 
-                return "1X" if prob_1x > prob_x2 else "X2"
+            # If Prob_H <= 0.6 => '1X'; else 'H'
+            return "1X" if prob_h <= 0.65 else "H"
 
         elif prediction == "D":
-            if prob_d > 0.32 and b365d >= 3.0:
-                return "D"
-            elif prob_1x > prob_x2 and prob_1x > 0.7:
+            # If Prob_H + Prob_D > Prob_D + Prob_A => '1X' else 'X2'
+            if (b365h) < (b365a):
                 return "1X"
             else:
-                return "1X" if prob_1x > prob_x2 else "X2"
+                return "X2"
 
         elif prediction == "A":
-            if prob_a > 0.65 and b365a >= 1.4:
+            if (b365a) < 2.21 and prob_a > 0.65:
                 return "A"
-            elif prob_x2 > 0.75 and odds_x2 > 1.2:
-                return "X2"
             else:
-                return "X2" if prob_x2 >= prob_1x else "1X"
+                return "X2"
 
         # If no condition matched, fallback
-        return "1X"
+        return None
 
     all_results["FinalBet"] = all_results.apply(get_final_bet, axis=1)
 
@@ -411,48 +400,28 @@ def results():
 
     # Define final bet logic
     def get_final_bet(row):
-        """
-        Replicates your conditional logic for 'Prediction' + probabilities + High_conf
-        to decide if the final bet is 'H', '1X', 'X2', etc.
-        """
-        prediction = row["Prediction"]  # 'H','D','A'
-        prob_h = row.get("Prob_H", 0.0)  # default to 0 if missing
+        prediction = row.get("Prediction", "")
+        prob_h = row.get("Prob_H", 0.0)
         prob_d = row.get("Prob_D", 0.0)
         prob_a = row.get("Prob_A", 0.0)
-        prob_1x = row.get("Prob_1X", 0.0)
-        prob_x2 = row.get("Prob_X2", 0.0)
+        high_conf = row.get("High_conf", 0)
         b365h = row.get("B365H", 0.0)
-        b365d = row.get("B365D", 0.0)
         b365a = row.get("B365A", 0.0)
-        odds_1x = row.get("Odds_1X", 0.0)
-        odds_x2 = row.get("Odds_X2", 0.0)
 
         if prediction == "H":
-            if prob_h > 0.65 and b365h >= 1.4:
-                return "H"
-            elif prob_1x > 0.75 and odds_1x > 1.2:
-                return "1X"
-            else: 
-                return "1X" if prob_1x > prob_x2 else "X2"
-
+            return "1X" if prob_h <= 0.65 else "H"
         elif prediction == "D":
-            if prob_d > 0.32 and b365d >= 3.0:
-                return "D"
-            elif prob_1x > prob_x2 and prob_1x > 0.7:
+            if (b365h) < (b365a):
                 return "1X"
             else:
-                return "1X" if prob_1x > prob_x2 else "X2"
-
-        elif prediction == "A":
-            if prob_a > 0.65 and b365a >= 1.4:
-                return "A"
-            elif prob_x2 > 0.75 and odds_x2 > 1.2:
                 return "X2"
+        elif prediction == "A":
+            if (b365a) < 2.21 and prob_a > 0.65:
+                return "A"
             else:
-                return "X2" if prob_x2 >= prob_1x else "1X"
+                return "X2"
 
-        # If no condition matched, fallback
-        return "1X"
+        return None
 
     # Apply final bet logic
     df["FinalBet"] = df.apply(get_final_bet, axis=1)

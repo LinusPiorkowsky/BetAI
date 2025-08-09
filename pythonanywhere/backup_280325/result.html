@@ -101,40 +101,36 @@
 
             <!-- Show the final bet, final odd, confidence, etc. -->
             <div class="prediction-info">
+              {% set final_bet = p['FinalBet'] %}
+              {% set predicted_odd = 0 %}
+              {% set predicted_prob = 0 %}
+
+              {#
+                Decide final odd and final probability
+                based on the actual final bet
+              #}
+              {% if final_bet == 'H' %}
+                {% set final_bet = p['HomeTeam'] %}
+                {% set predicted_odd = p['B365H'] if 'B365H' in p else 0 %}
+                {% set predicted_prob = p['Prob_H'] %}
+              {% elif final_bet == '1X' %}
+                {% set final_bet = p['HomeTeam'] + '/ Draw' %}
+                {% set predicted_odd = p['1X_odds'] if '1X_odds' in p else 0 %}
+                {% set predicted_prob = p['Prob_H'] + p['Prob_D'] - 0.1  %}
+              {% elif final_bet == 'A' %}
+                {% set final_bet = p['AwayTeam'] %}
+                {% set predicted_odd = p['B365A'] if 'B365A' in p else 0 %}
+                {% set predicted_prob = p['Prob_A'] %}
+              {% elif final_bet == 'X2' %}
+                {% set final_bet = p['AwayTeam'] + '/ Draw' %}
+                {% set predicted_odd = p['X2_odds'] if 'X2_odds' in p else 0 %}
+                {% set predicted_prob = p['Prob_D'] + p['Prob_A'] - 0.1 %}
+              {% else %}
+                {# Fallback if FinalBet is None or unknown #}
+                {% set final_bet = '??' %}
                 {% set predicted_odd = 0 %}
                 {% set predicted_prob = 0 %}
-
-                {% if final_bet == 'H' %}
-                  {% set final_bet = p['HomeTeam'] %}
-                  {% set predicted_odd = p['B365H'] if 'B365H' in p else 0 %}
-                  {% set predicted_prob = p['Prob_H'] %}
-
-                {% elif final_bet == '1X' %}
-                  {% set final_bet = p['HomeTeam'] + ' / Draw' %}
-                  {% set predicted_odd = p['1X_odds'] if '1X_odds' in p else 0 %}
-                  {% set predicted_prob = p['1X_prob'] %}
-
-                {% elif final_bet == 'A' %}
-                  {% set final_bet = p['AwayTeam'] %}
-                  {% set predicted_odd = p['B365A'] if 'B365A' in p else 0 %}
-                  {% set predicted_prob = p['Prob_A'] %}
-
-                {% elif final_bet == 'X2' %}
-                  {% set final_bet = p['AwayTeam'] + ' / Draw' %}
-                  {% set predicted_odd = p['X2_odds'] if 'X2_odds' in p else 0 %}
-                  {% set predicted_prob = p['X2_prob'] %}
-
-                {% elif final_bet == 'D' %}
-                  {% set final_bet = 'Draw' %}
-                  {% set predicted_odd = p['B365D'] if 'B365D' in p else 0 %}
-                  {% set predicted_prob = p['Prob_D'] %}
-
-                {% else %}
-                {# Fallback if FinalBet is missing or invalid: safest choice #}
-                  {% set final_bet = p['HomeTeam'] + ' / Draw' %}
-                  {% set predicted_odd = p['1X_odds'] if '1X_odds' in p else 0 %}
-                  {% set predicted_prob = p['1X_prob'] %}
-                {% endif %}
+              {% endif %}
 
               <!-- Output the final values -->
               <p>

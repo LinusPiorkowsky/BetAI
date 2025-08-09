@@ -54,81 +54,43 @@
       {% for p in predictions %}
         {% set predicted_team = '' %}
         {% set predicted_prob = 0 %}
-        {% set predicted_prob2 = 0 %}
         {% set predicted_odd = 0 %}
-        {% set predicted_bet = '' %}
 
         {% if p['Prediction'] == 'H' %}
           {% set predicted_team = p['HomeTeam'] %}
           {% set predicted_prob = p['Prob_H'] %}
-          {% if p['Prob_H'] > 0.65 and p['B365H'] >= 1.4 %}
-            {% set predicted_bet = p['HomeTeam'] %}
-            {% set predicted_odd = p['B365H'] %}
-            {% set predicted_prob2 = p['Prob_H'] %}
-          {% elif p['1X_prob'] > 0.75 and p['1X_odds'] > 1.2 %}
-            {% set predicted_bet = '1X' %}
+          {% if p['B365H'] > 2.2 %}
             {% set predicted_odd = p['1X_odds'] %}
-            {% set predicted_prob2 = p['1X_prob'] %}
+            {% set predicted_bet = p['HomeTeam'] + '/ Draw' %}
+            {% set predicted_prob2 = p['1X_prob'] - 0.1 %}
           {% else %}
-            {% if p['1X_prob'] >= p['X2_prob'] %}
-              {% set predicted_bet = '1X' %}
-              {% set predicted_odd = p['1X_odds'] %}
-              {% set predicted_prob2 = p['1X_prob'] %}
-            {% else %}
-              {% set predicted_bet = 'X2' %}
-              {% set predicted_odd = p['X2_odds'] %}
-              {% set predicted_prob2 = p['X2_prob'] %}
-            {% endif %}
+            {% set predicted_odd = p['B365H'] %}
+            {% set predicted_bet = p['HomeTeam'] %}
+            {% set predicted_prob2 = p['Prob_H'] %}
           {% endif %}
-
         {% elif p['Prediction'] == 'D' %}
           {% set predicted_team = 'Draw' %}
           {% set predicted_prob = p['Prob_D'] %}
-          {% if p['Prob_D'] > 0.32 and p['B365D'] > 3.0 %}
-            {% set predicted_bet = 'Draw' %}
-            {% set predicted_odd = p['B365D'] %}
-            {% set predicted_prob2 = p['Prob_D'] %}
-          {% elif p['1X_prob'] >= p['X2_prob'] and p['1X_prob'] > 0.70 %}
-            {% set predicted_bet = '1X' %}
+          {% if p['B365H'] < p['B365A'] %}
+            {% set predicted_bet = p['HomeTeam'] + '/ Draw'  %}
+            {% set predicted_prob2 = p['1X_prob'] - 0.1 %}
             {% set predicted_odd = p['1X_odds'] %}
-            {% set predicted_prob2 = p['1X_prob'] %}
-          {% elif p['X2_prob'] > 0.70 %}
-            {% set predicted_bet = 'X2' %}
-            {% set predicted_odd = p['X2_odds'] %}
-            {% set predicted_prob2 = p['X2_prob'] %}
           {% else %}
-            {% if p['1X_prob'] >= p['X2_prob'] %}
-              {% set predicted_bet = '1X' %}
-              {% set predicted_odd = p['1X_odds'] %}
-              {% set predicted_prob2 = p['1X_prob'] %}
-            {% else %}
-              {% set predicted_bet = 'X2' %}
-              {% set predicted_odd = p['X2_odds'] %}
-              {% set predicted_prob2 = p['X2_prob'] %}
-            {% endif %}
+            {% set predicted_bet = p['AwayTeam'] + '/ Draw'  %}
+            {% set predicted_prob2 = p['X2_prob'] - 0.1 %}
+            {% set predicted_odd = p['X2_odds'] %}
           {% endif %}
-
         {% elif p['Prediction'] == 'A' %}
           {% set predicted_team = p['AwayTeam'] %}
           {% set predicted_prob = p['Prob_A'] %}
-          {% if p['Prob_A'] > 0.65 and p['B365A'] >= 1.4 %}
+          {% if p['B365A'] < 2.2 %}
             {% set predicted_bet = p['AwayTeam'] %}
-            {% set predicted_odd = p['B365A'] %}
             {% set predicted_prob2 = p['Prob_A'] %}
-          {% elif p['X2_prob'] > 0.75 and p['X2_odds'] > 1.2 %}
-            {% set predicted_bet = 'X2' %}
-            {% set predicted_odd = p['X2_odds'] %}
-            {% set predicted_prob2 = p['X2_prob'] %}
+            {% set predicted_odd = p['B365A'] %}
           {% else %}
-            {% if p['X2_prob'] >= p['1X_prob'] %}
-              {% set predicted_bet = 'X2' %}
-              {% set predicted_odd = p['X2_odds'] %}
-              {% set predicted_prob2 = p['X2_prob'] %}
-            {% else %}
-              {% set predicted_bet = '1X' %}
-              {% set predicted_odd = p['1X_odds'] %}
-              {% set predicted_prob2 = p['1X_prob'] %}
-            {% endif %}
+            {% set predicted_bet = p['AwayTeam'] + '/ Draw' %}
+            {% set predicted_prob2 = p['X2_prob'] - 0.1 %}
+            {% set predicted_odd = p['X2_odds']  %}
           {% endif %}
         {% endif %}
 

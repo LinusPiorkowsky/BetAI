@@ -22,7 +22,7 @@ from sklearn.preprocessing import StandardScaler
 # =============================================================================
 BASE_DIR = "/home/MachineLearningBets/BetAI"
 
-SAVE_DIR         = os.path.join(BASE_DIR, "data", "2024_25")  # Where downloaded league CSVs go
+SAVE_DIR         = os.path.join(BASE_DIR, "data", "2025_26")  # Where downloaded league CSVs go
 FIXTURES_DIR     = os.path.join(BASE_DIR, "data", "fixtures")
 PREDICTIONS_DIR  = os.path.join(BASE_DIR, "predictions")
 RESULTS_DIR      = os.path.join(BASE_DIR, "results")
@@ -41,7 +41,7 @@ os.makedirs(PREDICTIONS_DIR, exist_ok=True)
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
 # Your local definitions
-seasons = ['2019_20', '2020_21', '2021_22', '2022_23', '2023_24', '2024_25']
+seasons = ['2019_20', '2020_21', '2021_22', '2022_23', '2023_24', '2024_25', '2025_26']
 leagues = ['D1', 'F1', 'E0', 'I1', 'SP1']
 
 # Timezone offset
@@ -557,7 +557,10 @@ def main():
     fixtures['Prob_D'] = fixtures['Prob_D'].round(4)
     fixtures['Prob_A'] = fixtures['Prob_A'].round(4)
 
-    fixtures['High_conf'] = ((fixtures['Prob_H'] > 0.7) | (fixtures['Prob_A'] > 0.67)).astype(int)
+    fixtures['High_conf'] = (
+        ((fixtures['Prob_H'] > 0.7) & (fixtures['B365H'] < 1.75) & (fixtures['B365A'] > 3.0)) |
+        ((fixtures['Prob_A'] > 0.7) & (fixtures['B365A'] < 1.75) & (fixtures['B365H'] > 3.0))
+    ).astype(int)
     fixtures['Weekday'] = fixtures['Date'].dt.day_name()
 
     # Timezones
